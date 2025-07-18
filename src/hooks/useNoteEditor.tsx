@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import Konva from 'konva';
 import { Note } from '../types';
 import { PADDING, FONT_SIZE, LINE_HEIGHT } from '../constants/colors';
+import { useCanvasStore } from '../store/canvasStore';
 
 interface EditorPortalProps {
   note: Note;
@@ -15,6 +16,7 @@ interface EditorPortalProps {
 const EditorPortal = ({ note, stageScale, position, onSave, onClose }: EditorPortalProps) => {
   const [value, setValue] = useState(note.content);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isDarkMode = useCanvasStore((state) => state.isDarkMode);
 
   useEffect(() => {
     // Focus and select all text when editor opens
@@ -79,7 +81,7 @@ const EditorPortal = ({ note, stageScale, position, onSave, onClose }: EditorPor
           resize: 'none',
           lineHeight: `${LINE_HEIGHT}`,
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif',
-          color: 'rgba(0, 0, 0, 0.85)',
+          color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.85)',
         }}
       />
     </div>,

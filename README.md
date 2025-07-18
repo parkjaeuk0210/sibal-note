@@ -2,6 +2,9 @@
 
 애플의 Freeform에서 영감을 받은 모바일 친화적인 무한 캔버스 메모 애플리케이션입니다.
 
+## 🌐 Live Demo
+https://interectnote1-72u8uqrm2-feras-projects-59a977f0.vercel.app
+
 ## 🚀 주요 기능
 
 - 📝 **무한 캔버스**: 제한 없는 작업 공간

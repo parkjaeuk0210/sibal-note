@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { Group, Rect, Text, Image } from 'react-konva';
+import { useRef, useState } from 'react';
+import { Group, Rect, Text } from 'react-konva';
 import Konva from 'konva';
 import { CanvasFile as CanvasFileType } from '../../types';
 import { useCanvasStore } from '../../store/canvasStore';
@@ -9,15 +9,13 @@ interface CanvasFileProps {
   isSelected: boolean;
   onSelect: () => void;
   onDraggingChange?: (isDragging: boolean) => void;
-  onResizingChange?: (isResizing: boolean) => void;
 }
 
 export const CanvasFile = ({ 
   file, 
   isSelected, 
   onSelect,
-  onDraggingChange,
-  onResizingChange 
+  onDraggingChange
 }: CanvasFileProps) => {
   const groupRef = useRef<Konva.Group>(null);
   const [isDragging, setIsDragging] = useState(false);

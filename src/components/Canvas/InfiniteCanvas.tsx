@@ -316,9 +316,6 @@ export const InfiniteCanvas = React.memo(() => {
               file={file}
               isSelected={selectedFileId === file.id}
               onSelect={() => selectFile(file.id)}
-              onResizingChange={(isResizing) => {
-                setIsAnyNoteResizing(isResizing);
-              }}
               onDraggingChange={(isDragging) => {
                 setIsAnyNoteDragging(isDragging);
               }}

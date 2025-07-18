@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import { Image, Group, Rect, Transformer } from 'react-konva';
+import { Image, Group, Rect, Transformer, Text } from 'react-konva';
 import Konva from 'konva';
 import { CanvasImage as CanvasImageType } from '../../types';
 import { useCanvasStore } from '../../store/canvasStore';
@@ -24,6 +24,9 @@ export const CanvasImage = ({
   const transformerRef = useRef<Konva.Transformer>(null);
   const [imageObj, setImageObj] = useState<HTMLImageElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [currentSize, setCurrentSize] = useState({ width: image.width, height: image.height });
+  const [isShiftPressed, setIsShiftPressed] = useState(false);
   
   const { updateImage } = useCanvasStore();
 
@@ -44,6 +47,37 @@ export const CanvasImage = ({
     }
   }, [isSelected]);
 
+  // Handle Shift key press
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Shift' && isSelected) {
+        setIsShiftPressed(true);
+        if (transformerRef.current) {
+          transformerRef.current.keepRatio(false); // Shift pressed = free transform
+        }
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Shift' && isSelected) {
+        setIsShiftPressed(false);
+        if (transformerRef.current) {
+          transformerRef.current.keepRatio(true); // Shift released = keep ratio
+        }
+      }
+    };
+
+    if (isSelected) {
+      window.addEventListener('keydown', handleKeyDown);
+      window.addEventListener('keyup', handleKeyUp);
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [isSelected]);
+
   const handleDragStart = () => {
     setIsDragging(true);
     onDraggingChange?.(true);
@@ -61,10 +95,12 @@ export const CanvasImage = ({
   };
 
   const handleTransformStart = () => {
+    setIsResizing(true);
     onResizingChange?.(true);
   };
 
   const handleTransformEnd = () => {
+    setIsResizing(false);
     onResizingChange?.(false);
     
     const node = imageRef.current;
@@ -90,6 +126,40 @@ export const CanvasImage = ({
     onSelect();
   };
 
+  const handleDblClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    e.cancelBubble = true;
+    
+    // Reset to original size with animation
+    const node = imageRef.current;
+    if (!node || !image.originalWidth || !image.originalHeight) return;
+    
+    // Calculate the scale needed to fit original size within reasonable bounds
+    const maxSize = 800;
+    let targetWidth = image.originalWidth;
+    let targetHeight = image.originalHeight;
+    
+    if (targetWidth > maxSize || targetHeight > maxSize) {
+      const ratio = Math.min(maxSize / targetWidth, maxSize / targetHeight);
+      targetWidth *= ratio;
+      targetHeight *= ratio;
+    }
+    
+    // Animate the size change
+    node.to({
+      width: targetWidth,
+      height: targetHeight,
+      duration: 0.3,
+      easing: Konva.Easings.EaseInOut,
+      onFinish: () => {
+        updateImage(image.id, {
+          width: targetWidth,
+          height: targetHeight,
+        });
+        setCurrentSize({ width: targetWidth, height: targetHeight });
+      }
+    });
+  };
+
   if (!imageObj) return null;
 
   return (
@@ -102,6 +172,8 @@ export const CanvasImage = ({
       onDragEnd={handleDragEnd}
       onClick={handleClick}
       onTap={handleClick}
+      onDblClick={handleDblClick}
+      onDblTap={handleDblClick}
     >
       {/* Shadow and border for selected state */}
       {isSelected && (
@@ -132,6 +204,14 @@ export const CanvasImage = ({
         shadowOffsetY={isDragging ? 10 : 5}
         onTransformStart={handleTransformStart}
         onTransformEnd={handleTransformEnd}
+        onTransform={() => {
+          const node = imageRef.current;
+          if (node) {
+            const width = Math.round(node.width() * node.scaleX());
+            const height = Math.round(node.height() * node.scaleY());
+            setCurrentSize({ width, height });
+          }
+        }}
       />
       
       {isSelected && (
@@ -160,13 +240,64 @@ export const CanvasImage = ({
           ]}
           anchorStroke="#3B82F6"
           anchorFill="white"
-          anchorSize={12}
+          anchorSize={16}
+          anchorCornerRadius={2}
           borderStroke="#3B82F6"
-          borderStrokeWidth={1}
-          borderDash={[4, 4]}
+          borderStrokeWidth={2}
+          borderDash={[6, 3]}
           rotateEnabled={false}
           keepRatio={true}
+          anchorStyleFunc={(anchor) => {
+            anchor.on('mouseenter', function() {
+              document.body.style.cursor = 'nwse-resize';
+              this.scale({ x: 1.2, y: 1.2 });
+              this.fill('#3B82F6');
+            });
+            anchor.on('mouseleave', function() {
+              document.body.style.cursor = 'default';
+              this.scale({ x: 1, y: 1 });
+              this.fill('white');
+            });
+          }}
         />
+      )}
+      
+      {/* Size tooltip during resize */}
+      {isResizing && isSelected && (
+        <>
+          <Rect
+            x={image.width + 10}
+            y={-30}
+            width={140}
+            height={50}
+            fill="rgba(0, 0, 0, 0.85)"
+            cornerRadius={6}
+          />
+          <Text
+            x={image.width + 10}
+            y={-25}
+            width={140}
+            height={20}
+            text={`${currentSize.width} × ${currentSize.height}px`}
+            fill="white"
+            fontSize={14}
+            fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto"
+            align="center"
+            verticalAlign="middle"
+          />
+          <Text
+            x={image.width + 10}
+            y={-5}
+            width={140}
+            height={20}
+            text={isShiftPressed ? '자유 변형' : '비율 유지'}
+            fill="#60A5FA"
+            fontSize={12}
+            fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto"
+            align="center"
+            verticalAlign="middle"
+          />
+        </>
       )}
     </Group>
   );

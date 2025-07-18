@@ -2,6 +2,8 @@ import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react'
 import { Stage, Layer } from 'react-konva';
 import { useGesture } from '@use-gesture/react';
 import { EnterpriseNote } from '../Note/EnterpriseNote';
+import { CanvasImage } from './CanvasImage';
+import { CanvasFile } from './CanvasFile';
 import { useCanvasStore } from '../../store/canvasStore';
 import { useNoteEditor } from '../../hooks/useNoteEditor';
 import Konva from 'konva';
@@ -14,11 +16,17 @@ export const InfiniteCanvas = React.memo(() => {
   const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
   
   const notes = useCanvasStore((state) => state.notes);
+  const images = useCanvasStore((state) => state.images);
+  const files = useCanvasStore((state) => state.files);
   const viewport = useCanvasStore((state) => state.viewport);
   const setViewport = useCanvasStore((state) => state.setViewport);
   const addNote = useCanvasStore((state) => state.addNote);
   const selectNote = useCanvasStore((state) => state.selectNote);
   const updateNote = useCanvasStore((state) => state.updateNote);
+  const selectedImageId = useCanvasStore((state) => state.selectedImageId);
+  const selectedFileId = useCanvasStore((state) => state.selectedFileId);
+  const selectImage = useCanvasStore((state) => state.selectImage);
+  const selectFile = useCanvasStore((state) => state.selectFile);
   
   // Device optimizations
   const performanceMode = useMemo(() => getPerformanceMode(), []);
@@ -238,10 +246,12 @@ export const InfiniteCanvas = React.memo(() => {
     // If clicking on stage (not on a note)
     if (target === stageRef.current || target.parent?.className === 'Layer') {
       selectNote(null);
+      selectImage(null);
+      selectFile(null);
       // Also ensure canvas dragging is stopped
       setIsCanvasDragging(false);
     }
-  }, [selectNote]);
+  }, [selectNote, selectImage, selectFile]);
 
   const handleStageDoubleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
     // Only add note if clicking on stage itself
@@ -283,6 +293,39 @@ export const InfiniteCanvas = React.memo(() => {
         pixelRatio={performanceMode === 'low' ? 1 : window.devicePixelRatio}
       >
         <Layer>
+          {/* Render images */}
+          {images.map((image) => (
+            <CanvasImage
+              key={image.id}
+              image={image}
+              isSelected={selectedImageId === image.id}
+              onSelect={() => selectImage(image.id)}
+              onResizingChange={(isResizing) => {
+                setIsAnyNoteResizing(isResizing);
+              }}
+              onDraggingChange={(isDragging) => {
+                setIsAnyNoteDragging(isDragging);
+              }}
+            />
+          ))}
+          
+          {/* Render files */}
+          {files.map((file) => (
+            <CanvasFile
+              key={file.id}
+              file={file}
+              isSelected={selectedFileId === file.id}
+              onSelect={() => selectFile(file.id)}
+              onResizingChange={(isResizing) => {
+                setIsAnyNoteResizing(isResizing);
+              }}
+              onDraggingChange={(isDragging) => {
+                setIsAnyNoteDragging(isDragging);
+              }}
+            />
+          ))}
+          
+          {/* Render notes */}
           {notes.map((note) => (
             <EnterpriseNote 
               key={note.id} 

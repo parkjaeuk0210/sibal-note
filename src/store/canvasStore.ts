@@ -1,17 +1,31 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Note, NoteColor, Viewport } from '../types';
+import { Note, NoteColor, Viewport, CanvasImage, CanvasFile } from '../types';
 
 interface CanvasStore {
   notes: Note[];
+  images: CanvasImage[];
+  files: CanvasFile[];
   viewport: Viewport;
   selectedNoteId: string | null;
+  selectedImageId: string | null;
+  selectedFileId: string | null;
   isDarkMode: boolean;
   
   addNote: (x: number, y: number) => void;
   updateNote: (id: string, updates: Partial<Note>) => void;
   deleteNote: (id: string) => void;
   selectNote: (id: string | null) => void;
+  
+  addImage: (image: Omit<CanvasImage, 'id' | 'createdAt'>) => void;
+  updateImage: (id: string, updates: Partial<CanvasImage>) => void;
+  deleteImage: (id: string) => void;
+  selectImage: (id: string | null) => void;
+  
+  addFile: (file: Omit<CanvasFile, 'id' | 'createdAt'>) => void;
+  updateFile: (id: string, updates: Partial<CanvasFile>) => void;
+  deleteFile: (id: string) => void;
+  selectFile: (id: string | null) => void;
   
   setViewport: (viewport: Viewport) => void;
   
@@ -26,8 +40,12 @@ export const useCanvasStore = create<CanvasStore>()(
   persist(
     (set) => ({
       notes: [],
+      images: [],
+      files: [],
       viewport: { x: 0, y: 0, scale: 1 },
       selectedNoteId: null,
+      selectedImageId: null,
+      selectedFileId: null,
       isDarkMode: false,
       
       addNote: (x, y) => {
@@ -46,6 +64,8 @@ export const useCanvasStore = create<CanvasStore>()(
         set((state) => ({
           notes: [...state.notes, newNote],
           selectedNoteId: newNote.id,
+          selectedImageId: null,
+          selectedFileId: null,
         }));
       },
       
@@ -67,7 +87,75 @@ export const useCanvasStore = create<CanvasStore>()(
       },
       
       selectNote: (id) => {
-        set({ selectedNoteId: id });
+        set({ selectedNoteId: id, selectedImageId: null, selectedFileId: null });
+      },
+      
+      addImage: (image) => {
+        const newImage: CanvasImage = {
+          ...image,
+          id: `image-${Date.now()}`,
+          createdAt: new Date(),
+        };
+        
+        set((state) => ({
+          images: [...state.images, newImage],
+          selectedImageId: newImage.id,
+          selectedNoteId: null,
+          selectedFileId: null,
+        }));
+      },
+      
+      updateImage: (id, updates) => {
+        set((state) => ({
+          images: state.images.map((image) =>
+            image.id === id ? { ...image, ...updates } : image
+          ),
+        }));
+      },
+      
+      deleteImage: (id) => {
+        set((state) => ({
+          images: state.images.filter((image) => image.id !== id),
+          selectedImageId: state.selectedImageId === id ? null : state.selectedImageId,
+        }));
+      },
+      
+      selectImage: (id) => {
+        set({ selectedImageId: id, selectedNoteId: null, selectedFileId: null });
+      },
+      
+      addFile: (file) => {
+        const newFile: CanvasFile = {
+          ...file,
+          id: `file-${Date.now()}`,
+          createdAt: new Date(),
+        };
+        
+        set((state) => ({
+          files: [...state.files, newFile],
+          selectedFileId: newFile.id,
+          selectedNoteId: null,
+          selectedImageId: null,
+        }));
+      },
+      
+      updateFile: (id, updates) => {
+        set((state) => ({
+          files: state.files.map((file) =>
+            file.id === id ? { ...file, ...updates } : file
+          ),
+        }));
+      },
+      
+      deleteFile: (id) => {
+        set((state) => ({
+          files: state.files.filter((file) => file.id !== id),
+          selectedFileId: state.selectedFileId === id ? null : state.selectedFileId,
+        }));
+      },
+      
+      selectFile: (id) => {
+        set({ selectedFileId: id, selectedNoteId: null, selectedImageId: null });
       },
       
       setViewport: (viewport) => {
@@ -77,8 +165,12 @@ export const useCanvasStore = create<CanvasStore>()(
       clearCanvas: () => {
         set({
           notes: [],
+          images: [],
+          files: [],
           viewport: { x: 0, y: 0, scale: 1 },
           selectedNoteId: null,
+          selectedImageId: null,
+          selectedFileId: null,
         });
       },
       

@@ -1,31 +1,126 @@
+import { useRef } from 'react';
 import { useCanvasStore } from '../../store/canvasStore';
 import { ColorPicker } from './ColorPicker';
+import { FileType } from '../../types';
 
 export const Toolbar = () => {
-  const { notes, selectedNoteId, deleteNote, clearCanvas, viewport, setViewport, updateNote } = useCanvasStore();
+  const { 
+    notes, 
+    selectedNoteId, 
+    selectedImageId,
+    selectedFileId,
+    deleteNote, 
+    deleteImage,
+    deleteFile,
+    clearCanvas, 
+    viewport, 
+    updateNote,
+    addImage,
+    addFile
+  } = useCanvasStore();
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const selectedNote = notes.find(n => n.id === selectedNoteId);
-
-  const handleResetView = () => {
-    setViewport({ x: 0, y: 0, scale: 1 });
-  };
 
   const handleDelete = () => {
     if (selectedNoteId) {
       deleteNote(selectedNoteId);
+    } else if (selectedImageId) {
+      deleteImage(selectedImageId);
+    } else if (selectedFileId) {
+      deleteFile(selectedFileId);
     }
   };
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        const url = e.target?.result as string;
+        const fileType = file.type;
+        
+        // Calculate position for new item
+        const x = (window.innerWidth / 2 - viewport.x) / viewport.scale;
+        const y = (window.innerHeight / 2 - viewport.y) / viewport.scale;
+        
+        if (fileType.startsWith('image/')) {
+          // Handle image
+          const img = new Image();
+          img.onload = () => {
+            const maxSize = 400;
+            let width = img.width;
+            let height = img.height;
+            
+            if (width > maxSize || height > maxSize) {
+              const ratio = Math.min(maxSize / width, maxSize / height);
+              width *= ratio;
+              height *= ratio;
+            }
+            
+            addImage({
+              x,
+              y,
+              width,
+              height,
+              url,
+              originalWidth: img.width,
+              originalHeight: img.height,
+              fileName: file.name,
+              fileSize: file.size,
+            });
+          };
+          img.src = url;
+        } else {
+          // Handle other files
+          let fileTypeCategory: FileType = 'other';
+          if (fileType === 'application/pdf') fileTypeCategory = 'pdf';
+          else if (fileType.includes('document') || fileType.includes('text')) fileTypeCategory = 'document';
+          
+          addFile({
+            x,
+            y,
+            width: 200,
+            height: 240,
+            fileName: file.name,
+            fileType: fileTypeCategory,
+            fileSize: file.size,
+            url,
+          });
+        }
+      };
+      
+      reader.readAsDataURL(file);
+    });
+    
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   return (
     <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 glass rounded-full px-6 py-3 shadow-lg">
       <div className="flex items-center gap-4">
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept="image/*,.pdf,.doc,.docx,.txt"
+          onChange={handleFileUpload}
+          className="hidden"
+        />
+        
         <button
-          onClick={handleResetView}
+          onClick={() => fileInputRef.current?.click()}
           className="glass-button rounded-full p-3 hover:scale-105 transition-transform"
-          title="뷰 초기화"
+          title="파일 추가"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
         </button>
 
@@ -46,6 +141,22 @@ export const Toolbar = () => {
               onClick={handleDelete}
               className="glass-button rounded-full p-3 hover:scale-105 transition-transform text-red-500"
               title="메모 삭제"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </>
+        )}
+        
+        {(selectedImageId || selectedFileId) && (
+          <>
+            <div className="w-px h-6 bg-gray-300" />
+            
+            <button
+              onClick={handleDelete}
+              className="glass-button rounded-full p-3 hover:scale-105 transition-transform text-red-500"
+              title="삭제"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

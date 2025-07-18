@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
-import { Group, Rect, Text, Circle, Line } from 'react-konva';
+import { Group, Rect, Text } from 'react-konva';
 import Konva from 'konva';
 import { Note } from '../../types';
 import { useCanvasStore } from '../../store/canvasStore';
@@ -31,7 +31,6 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
   const clickCount = useRef(0);
   
   const updateNote = useCanvasStore((state) => state.updateNote);
-  const deleteNote = useCanvasStore((state) => state.deleteNote);
   const selectNote = useCanvasStore((state) => state.selectNote);
   const isSelected = useCanvasStore((state) => state.selectedNoteId === note.id);
   
@@ -141,9 +140,6 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
     }
   }, [onStartEditing, isDragging, isResizing]);
 
-  const handleDelete = useCallback(() => {
-    deleteNote(note.id);
-  }, [deleteNote, note.id]);
 
   const handleResizeStart = useCallback(() => {
     // Don't resize if editing

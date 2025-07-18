@@ -137,7 +137,7 @@ export const CanvasImage = ({
       {isSelected && (
         <Transformer
           ref={transformerRef}
-          boundBoxFunc={(oldBox, newBox) => {
+          boundBoxFunc={(_, newBox) => {
             // Limit minimum size and maintain aspect ratio
             const aspectRatio = image.width / image.height;
             

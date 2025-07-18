@@ -1,0 +1,281 @@
+.quantum-button {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  outline: none;
+  padding: 0;
+  isolation: isolate;
+}
+
+.quantum-core {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quantum-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.quantum-pulse-1 {
+  background: radial-gradient(circle, 
+    rgba(79, 70, 229, 0.3) 0%, 
+    rgba(124, 58, 237, 0.1) 40%, 
+    transparent 70%
+  );
+  animation: pulse-expand 3s ease-out infinite;
+}
+
+.quantum-pulse-2 {
+  background: radial-gradient(circle, 
+    rgba(0, 217, 255, 0.2) 0%, 
+    rgba(255, 0, 128, 0.1) 40%, 
+    transparent 70%
+  );
+  animation: pulse-expand 3s ease-out infinite 1s;
+}
+
+.quantum-pulse-3 {
+  background: radial-gradient(circle, 
+    rgba(255, 255, 255, 0.1) 0%, 
+    rgba(96, 165, 250, 0.05) 40%, 
+    transparent 70%
+  );
+  animation: pulse-expand 3s ease-out infinite 2s;
+}
+
+@keyframes pulse-expand {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.neural-network {
+  position: absolute;
+  width: 120%;
+  height: 120%;
+  top: -10%;
+  left: -10%;
+  pointer-events: none;
+}
+
+.neural-line {
+  stroke: rgba(79, 70, 229, 0.3);
+  stroke-width: 1;
+  fill: none;
+  opacity: 0;
+  animation: neural-activate 0.6s ease-out forwards;
+}
+
+.neural-node {
+  fill: rgba(124, 58, 237, 0.6);
+  opacity: 0;
+  animation: neural-activate 0.6s ease-out forwards;
+}
+
+@keyframes neural-activate {
+  to {
+    opacity: 1;
+  }
+}
+
+.liquid-metal {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+  box-shadow: 
+    0 8px 32px rgba(79, 70, 229, 0.4),
+    0 4px 16px rgba(124, 58, 237, 0.3),
+    inset 0 2px 8px rgba(255, 255, 255, 0.3);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.quantum-button:hover .liquid-metal {
+  background: linear-gradient(135deg, #5B4FFF 0%, #8B3FFF 100%);
+  box-shadow: 
+    0 12px 48px rgba(79, 70, 229, 0.6),
+    0 6px 24px rgba(124, 58, 237, 0.4),
+    inset 0 2px 12px rgba(255, 255, 255, 0.4);
+  transform: scale(1.05);
+}
+
+.liquid-gradient {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.4) 0%,
+    transparent 60%
+  );
+  animation: liquid-flow 8s ease-in-out infinite;
+}
+
+.liquid-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 70%
+  );
+  animation: shine-sweep 4s ease-in-out infinite;
+}
+
+@keyframes liquid-flow {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  33% {
+    transform: rotate(120deg) scale(1.1);
+  }
+  66% {
+    transform: rotate(240deg) scale(0.95);
+  }
+}
+
+@keyframes shine-sweep {
+  0% {
+    transform: translateX(-100%) translateY(-100%);
+  }
+  50%, 100% {
+    transform: translateX(100%) translateY(100%);
+  }
+}
+
+.plus-icon {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.plus-icon.morphed {
+  transform: rotate(180deg) scale(1.2);
+}
+
+.plus-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.plus-path {
+  stroke: white;
+  fill: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  transition: all 0.4s ease;
+}
+
+.quantum-button:hover .plus-path {
+  stroke: #ffffff;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+}
+
+.holographic-overlay {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent,
+    rgba(0, 217, 255, 0.1),
+    rgba(255, 0, 128, 0.1),
+    transparent,
+    rgba(0, 217, 255, 0.1),
+    rgba(255, 0, 128, 0.1),
+    transparent
+  );
+  animation: holographic-spin 6s linear infinite;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.quantum-button:hover .holographic-overlay {
+  opacity: 1;
+}
+
+@keyframes holographic-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.quantum-collapse {
+  position: absolute;
+  inset: -20px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(79, 70, 229, 0.4) 0%,
+    transparent 70%
+  );
+  animation: collapse-wave 0.6s ease-out;
+  pointer-events: none;
+}
+
+@keyframes collapse-wave {
+  0% {
+    transform: scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Accessibility */
+.quantum-button:focus-visible {
+  outline: none;
+}
+
+.quantum-button:focus-visible .liquid-metal {
+  box-shadow: 
+    0 0 0 3px rgba(79, 70, 229, 0.5),
+    0 12px 48px rgba(79, 70, 229, 0.6),
+    0 6px 24px rgba(124, 58, 237, 0.4),
+    inset 0 2px 12px rgba(255, 255, 255, 0.4);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .quantum-pulse,
+  .neural-line,
+  .neural-node,
+  .liquid-gradient,
+  .liquid-shine,
+  .holographic-overlay {
+    animation: none !important;
+  }
+  
+  .quantum-button,
+  .liquid-metal,
+  .plus-icon {
+    transition: none !important;
+  }
+}

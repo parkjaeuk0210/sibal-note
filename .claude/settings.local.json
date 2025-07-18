@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run dev:*)",
+      "Bash(rm:*)",
+      "Bash(del \"C:\\Users\\jaeuk\\interectnote1\\src\\hooks\\useNoteEditor.ts\")",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs"
+    ],
+    "deny": []
+  }
+}

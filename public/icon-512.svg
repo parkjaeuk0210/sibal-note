@@ -1,0 +1,40 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FEF08A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FDE047;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glass">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" />
+      <feComposite in2="SourceGraphic" operator="over" />
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="512" height="512" rx="100" fill="url(#bg)" />
+  
+  <!-- Glass effect overlay -->
+  <rect x="40" y="40" width="432" height="432" rx="80" fill="rgba(255,255,255,0.2)" filter="url(#glass)" />
+  
+  <!-- Multiple sticky notes -->
+  <g transform="translate(120, 100)">
+    <rect width="160" height="160" rx="8" fill="#93C5FD" opacity="0.9" transform="rotate(-5)" />
+    <rect x="20" y="20" width="120" height="2" fill="#60A5FA" opacity="0.6" transform="rotate(-5)" />
+    <rect x="20" y="40" width="100" height="2" fill="#60A5FA" opacity="0.4" transform="rotate(-5)" />
+    <rect x="20" y="60" width="110" height="2" fill="#60A5FA" opacity="0.4" transform="rotate(-5)" />
+  </g>
+  
+  <g transform="translate(200, 180)">
+    <rect width="160" height="160" rx="8" fill="#FBCFE8" opacity="0.9" transform="rotate(3)" />
+    <rect x="20" y="20" width="120" height="2" fill="#F9A8D4" opacity="0.6" transform="rotate(3)" />
+    <rect x="20" y="40" width="100" height="2" fill="#F9A8D4" opacity="0.4" transform="rotate(3)" />
+    <rect x="20" y="60" width="110" height="2" fill="#F9A8D4" opacity="0.4" transform="rotate(3)" />
+  </g>
+  
+  <g transform="translate(140, 260)">
+    <rect width="160" height="160" rx="8" fill="#86EFAC" opacity="0.9" transform="rotate(-2)" />
+    <rect x="20" y="20" width="120" height="2" fill="#4ADE80" opacity="0.6" transform="rotate(-2)" />
+    <rect x="20" y="40" width="100" height="2" fill="#4ADE80" opacity="0.4" transform="rotate(-2)" />
+    <rect x="20" y="60" width="110" height="2" fill="#4ADE80" opacity="0.4" transform="rotate(-2)" />
+  </g>
+</svg>

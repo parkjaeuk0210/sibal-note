@@ -1,7 +1,9 @@
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useCanvasStore } from '../../store/canvasStore';
 import { ColorPicker } from './ColorPicker';
 import { FileType } from '../../types';
+import { compressImage, getDataUrlSize, formatBytes } from '../../utils/imageCompression';
+import { getLocalStorageUsagePercent, isLocalStorageNearLimit } from '../../utils/storageUtils';
 
 export const Toolbar = () => {
   const { 
@@ -16,11 +18,27 @@ export const Toolbar = () => {
     viewport, 
     updateNote,
     addImage,
-    addFile
+    addFile,
+    images,
+    files
   } = useCanvasStore();
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const selectedNote = notes.find(n => n.id === selectedNoteId);
+  const [storageUsage, setStorageUsage] = useState(0);
+  
+  // Monitor storage usage
+  useEffect(() => {
+    const updateStorageUsage = () => {
+      setStorageUsage(getLocalStorageUsagePercent());
+    };
+    
+    updateStorageUsage();
+    
+    // Update whenever items change
+    const interval = setInterval(updateStorageUsage, 1000);
+    return () => clearInterval(interval);
+  }, [notes.length, images.length, files.length]);
 
   const handleDelete = () => {
     if (selectedNoteId) {
@@ -32,14 +50,14 @@ export const Toolbar = () => {
     }
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files) return;
 
-    Array.from(files).forEach(file => {
+    for (const file of Array.from(files)) {
       const reader = new FileReader();
       
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const url = e.target?.result as string;
         const fileType = file.type;
         
@@ -48,37 +66,67 @@ export const Toolbar = () => {
         const y = (window.innerHeight / 2 - viewport.y) / viewport.scale;
         
         if (fileType.startsWith('image/')) {
-          // Handle image
-          const img = new Image();
-          img.onload = () => {
-            const maxSize = 400;
-            let width = img.width;
-            let height = img.height;
-            
-            if (width > maxSize || height > maxSize) {
-              const ratio = Math.min(maxSize / width, maxSize / height);
-              width *= ratio;
-              height *= ratio;
+          try {
+            // Check storage before adding
+            if (isLocalStorageNearLimit()) {
+              alert('저장 공간이 부족합니다. 일부 항목을 삭제한 후 다시 시도해주세요.');
+              return;
             }
             
-            addImage({
-              x,
-              y,
-              width,
-              height,
-              url,
-              originalWidth: img.width,
-              originalHeight: img.height,
-              fileName: file.name,
-              fileSize: file.size,
-            });
-          };
-          img.src = url;
+            // Compress image before storing
+            const compressedUrl = await compressImage(url);
+            const compressedSize = getDataUrlSize(compressedUrl);
+            
+            // Check if compressed size is reasonable for localStorage
+            if (compressedSize > 1024 * 1024) { // 1MB limit per image
+              alert(`이미지 "${file.name}"의 크기가 너무 큽니다 (${formatBytes(compressedSize)}). 더 작은 이미지를 사용해주세요.`);
+              return;
+            }
+            
+            // Handle image
+            const img = new Image();
+            img.onload = () => {
+              const maxSize = 400;
+              let width = img.width;
+              let height = img.height;
+              
+              if (width > maxSize || height > maxSize) {
+                const ratio = Math.min(maxSize / width, maxSize / height);
+                width *= ratio;
+                height *= ratio;
+              }
+              
+              addImage({
+                x,
+                y,
+                width,
+                height,
+                url: compressedUrl,
+                originalWidth: img.width,
+                originalHeight: img.height,
+                fileName: file.name,
+                fileSize: compressedSize,
+              });
+              
+              console.log(`Image compressed: ${formatBytes(file.size)} → ${formatBytes(compressedSize)}`);
+            };
+            img.src = compressedUrl;
+          } catch (error) {
+            console.error('Image compression failed:', error);
+            alert(`이미지 처리 중 오류가 발생했습니다: ${file.name}`);
+          }
         } else {
           // Handle other files
           let fileTypeCategory: FileType = 'other';
           if (fileType === 'application/pdf') fileTypeCategory = 'pdf';
           else if (fileType.includes('document') || fileType.includes('text')) fileTypeCategory = 'document';
+          
+          // Check file size for non-images too
+          const fileDataSize = getDataUrlSize(url);
+          if (fileDataSize > 500 * 1024) { // 500KB limit for other files
+            alert(`파일 "${file.name}"의 크기가 너무 큽니다 (${formatBytes(fileDataSize)}). 더 작은 파일을 사용해주세요.`);
+            return;
+          }
           
           addFile({
             x,
@@ -94,7 +142,7 @@ export const Toolbar = () => {
       };
       
       reader.readAsDataURL(file);
-    });
+    }
     
     // Reset input
     if (fileInputRef.current) {
@@ -126,6 +174,11 @@ export const Toolbar = () => {
 
         <div className="text-sm text-gray-600">
           {notes.length}개 메모 | 배율 {Math.round(viewport.scale * 100)}%
+          {storageUsage > 50 && (
+            <span className={`ml-2 ${storageUsage > 80 ? 'text-red-500' : 'text-orange-500'}`}>
+              | 저장공간 {storageUsage}%
+            </span>
+          )}
         </div>
 
         {selectedNote && (

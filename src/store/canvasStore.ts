@@ -97,12 +97,31 @@ export const useCanvasStore = create<CanvasStore>()(
           createdAt: new Date(),
         };
         
-        set((state) => ({
-          images: [...state.images, newImage],
-          selectedImageId: newImage.id,
-          selectedNoteId: null,
-          selectedFileId: null,
-        }));
+        set((state) => {
+          const newState = {
+            images: [...state.images, newImage],
+            selectedImageId: newImage.id,
+            selectedNoteId: null,
+            selectedFileId: null,
+          };
+          
+          // Test if we can save to localStorage
+          try {
+            const testKey = 'interectnote-storage';
+            const newData = JSON.stringify({ ...state, ...newState });
+            
+            localStorage.setItem(testKey, newData);
+            
+            // Success - return new state
+            return newState;
+          } catch (e) {
+            console.error('Failed to save image to localStorage:', e);
+            alert('저장 공간이 부족합니다. 일부 이미지를 삭제하고 다시 시도해주세요.');
+            
+            // Don't add the image if we can't save it
+            return state;
+          }
+        });
       },
       
       updateImage: (id, updates) => {
@@ -131,12 +150,31 @@ export const useCanvasStore = create<CanvasStore>()(
           createdAt: new Date(),
         };
         
-        set((state) => ({
-          files: [...state.files, newFile],
-          selectedFileId: newFile.id,
-          selectedNoteId: null,
-          selectedImageId: null,
-        }));
+        set((state) => {
+          const newState = {
+            files: [...state.files, newFile],
+            selectedFileId: newFile.id,
+            selectedNoteId: null,
+            selectedImageId: null,
+          };
+          
+          // Test if we can save to localStorage
+          try {
+            const testKey = 'interectnote-storage';
+            const newData = JSON.stringify({ ...state, ...newState });
+            
+            localStorage.setItem(testKey, newData);
+            
+            // Success - return new state
+            return newState;
+          } catch (e) {
+            console.error('Failed to save file to localStorage:', e);
+            alert('저장 공간이 부족합니다. 일부 파일을 삭제하고 다시 시도해주세요.');
+            
+            // Don't add the file if we can't save it
+            return state;
+          }
+        });
       },
       
       updateFile: (id, updates) => {

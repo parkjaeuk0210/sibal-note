@@ -100,7 +100,7 @@ export const ColorPicker = ({ currentColor, onColorChange }: ColorPickerProps) =
             {/* Center current color */}
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
               <div 
-                className="w-8 h-8 rounded-full shadow-lg ring-2 ring-white"
+                className="w-8 h-8 rounded-full shadow-lg ring-2 ring-white dark:ring-gray-800"
                 style={{ backgroundColor: currentColorHex }}
               />
             </div>
@@ -118,7 +118,7 @@ export const ColorPicker = ({ currentColor, onColorChange }: ColorPickerProps) =
                     setIsOpen(false);
                   }}
                   className={`absolute w-7 h-7 rounded-full shadow-md transition-all duration-200 hover:scale-125 hover:shadow-lg hover:z-20 cursor-pointer ${
-                    isSelected ? 'ring-2 ring-white ring-offset-1' : ''
+                    isSelected ? 'ring-2 ring-white dark:ring-gray-800 ring-offset-1 dark:ring-offset-gray-900' : ''
                   }`}
                   style={{
                     backgroundColor: color.hex,

@@ -8,7 +8,8 @@
       "Bash(rm:*)",
       "Bash(del \"C:\\Users\\jaeuk\\interectnote1\\src\\hooks\\useNoteEditor.ts\")",
       "mcp__context7__resolve-library-id",
-      "mcp__context7__get-library-docs"
+      "mcp__context7__get-library-docs",
+      "Bash(git add:*)"
     ],
     "deny": []
   }

@@ -75,12 +75,18 @@ export const InfiniteCanvas = React.memo(() => {
     }
   }, [isAnyNoteDragging, isAnyNoteResizing]);
 
-  // Optimized viewport update with throttling for mobile
+  // Optimized viewport update
   const updateViewportRAF = useCallback((newViewport: typeof viewport) => {
+    // Direct update for canvas dragging (no throttling)
+    if (isCanvasDragging) {
+      setViewport(newViewport);
+      return;
+    }
+    
+    // Throttled updates for other interactions on mobile
     const now = Date.now();
     const timeSinceLastUpdate = now - lastUpdateTime.current;
     
-    // Throttle updates on low performance mode
     if (performanceMode === 'low' && timeSinceLastUpdate < updateThrottle) {
       pendingViewport.current = newViewport;
       
@@ -98,7 +104,7 @@ export const InfiniteCanvas = React.memo(() => {
       return;
     }
     
-    // Immediate update for high performance mode
+    // Normal RAF update
     pendingViewport.current = newViewport;
     
     if (rafId.current) {
@@ -113,7 +119,7 @@ export const InfiniteCanvas = React.memo(() => {
       }
       rafId.current = null;
     });
-  }, [setViewport, performanceMode, updateThrottle]);
+  }, [setViewport, performanceMode, updateThrottle, isCanvasDragging]);
 
   // Cleanup RAF on unmount
   useEffect(() => {
@@ -183,7 +189,8 @@ export const InfiniteCanvas = React.memo(() => {
           return;
         }
         
-        updateViewportRAF({
+        // Direct update for smoother canvas drag
+        setViewport({
           ...viewport,
           x: viewport.x + dx,
           y: viewport.y + dy,

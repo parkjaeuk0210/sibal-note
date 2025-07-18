@@ -267,13 +267,21 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
       onDragMove={handleDragMove}
     >
       {/* Single clean card background */}
-      {note.color === 'blue' && !isDarkMode ? (
+      {note.color === 'blue' ? (
         <Shape
           sceneFunc={(context) => {
             const gradient = context.createLinearGradient(0, 0, currentWidth * 0.5, currentHeight);
-            gradient.addColorStop(0, 'rgba(224, 242, 254, 0.95)');
-            gradient.addColorStop(0.5, 'rgba(186, 230, 253, 0.88)');
-            gradient.addColorStop(1, 'rgba(147, 197, 253, 0.82)');
+            if (isDarkMode) {
+              // Dark mode gradient - deeper blues
+              gradient.addColorStop(0, 'rgba(30, 58, 138, 0.95)');
+              gradient.addColorStop(0.5, 'rgba(29, 78, 216, 0.88)');
+              gradient.addColorStop(1, 'rgba(37, 99, 235, 0.82)');
+            } else {
+              // Light mode gradient
+              gradient.addColorStop(0, 'rgba(224, 242, 254, 0.95)');
+              gradient.addColorStop(0.5, 'rgba(186, 230, 253, 0.88)');
+              gradient.addColorStop(1, 'rgba(147, 197, 253, 0.82)');
+            }
             
             context.beginPath();
             context.roundRect(0, 0, currentWidth, currentHeight, CORNER_RADIUS);
@@ -281,7 +289,7 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
             context.fill();
             context.closePath();
           }}
-          shadowColor="rgba(0, 0, 0, 0.1)"
+          shadowColor={isDarkMode ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.1)"}
           shadowBlur={performanceMode === 'high' ? (isSelected ? 20 : 8) : 0}
           shadowOffset={{ x: 0, y: performanceMode === 'high' ? (isSelected ? 6 : 2) : 0 }}
           shadowEnabled={performanceMode === 'high' && !isDragging && !isResizing}

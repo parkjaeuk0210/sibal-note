@@ -104,20 +104,26 @@ export const CanvasImage = ({
     onResizingChange?.(false);
     
     const node = imageRef.current;
-    if (!node) return;
+    const group = groupRef.current;
+    if (!node || !group) return;
 
     const scaleX = node.scaleX();
     const scaleY = node.scaleY();
 
-    // Reset scale and update size
+    // Reset scale
     node.scaleX(1);
     node.scaleY(1);
 
+    // Calculate new dimensions
+    const newWidth = Math.max(50, node.width() * scaleX);
+    const newHeight = Math.max(50, node.height() * scaleY);
+
+    // Update with group position + node position
     updateImage(image.id, {
-      x: node.x(),
-      y: node.y(),
-      width: Math.max(50, node.width() * scaleX),
-      height: Math.max(50, node.height() * scaleY),
+      x: group.x() + node.x(),
+      y: group.y() + node.y(),
+      width: newWidth,
+      height: newHeight,
     });
   };
 
@@ -175,20 +181,20 @@ export const CanvasImage = ({
       onDblClick={handleDblClick}
       onDblTap={handleDblClick}
     >
-      {/* Shadow and border for selected state */}
+      {/* Shadow for selected state */}
       {isSelected && (
         <Rect
-          x={-4}
-          y={-4}
-          width={image.width + 8}
-          height={image.height + 8}
+          x={-2}
+          y={-2}
+          width={image.width + 4}
+          height={image.height + 4}
           fill="transparent"
-          stroke="#3B82F6"
-          strokeWidth={2}
+          stroke="transparent"
+          strokeWidth={0}
           cornerRadius={8}
-          shadowColor="rgba(59, 130, 246, 0.3)"
-          shadowBlur={20}
-          shadowOpacity={0.5}
+          shadowColor="rgba(59, 130, 246, 0.4)"
+          shadowBlur={25}
+          shadowOpacity={0.6}
         />
       )}
       

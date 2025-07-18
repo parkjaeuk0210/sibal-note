@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
-import { Group, Rect, Text } from 'react-konva';
+import { Group, Rect, Text, Shape } from 'react-konva';
 import Konva from 'konva';
 import { Note } from '../../types';
 import { useCanvasStore } from '../../store/canvasStore';
@@ -267,16 +267,37 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
       onDragMove={handleDragMove}
     >
       {/* Single clean card background */}
-      <Rect
-        width={currentWidth}
-        height={currentHeight}
-        fill={colors.primary}
-        cornerRadius={CORNER_RADIUS}
-        shadowColor="rgba(0, 0, 0, 0.1)"
-        shadowBlur={performanceMode === 'high' ? (isSelected ? 20 : 8) : 0}
-        shadowOffset={{ x: 0, y: performanceMode === 'high' ? (isSelected ? 6 : 2) : 0 }}
-        shadowEnabled={performanceMode === 'high' && !isDragging && !isResizing}
-      />
+      {note.color === 'blue' && !isDarkMode ? (
+        <Shape
+          sceneFunc={(context) => {
+            const gradient = context.createLinearGradient(0, 0, currentWidth * 0.5, currentHeight);
+            gradient.addColorStop(0, 'rgba(224, 242, 254, 0.95)');
+            gradient.addColorStop(0.5, 'rgba(186, 230, 253, 0.88)');
+            gradient.addColorStop(1, 'rgba(147, 197, 253, 0.82)');
+            
+            context.beginPath();
+            context.roundRect(0, 0, currentWidth, currentHeight, CORNER_RADIUS);
+            context.fillStyle = gradient;
+            context.fill();
+            context.closePath();
+          }}
+          shadowColor="rgba(0, 0, 0, 0.1)"
+          shadowBlur={performanceMode === 'high' ? (isSelected ? 20 : 8) : 0}
+          shadowOffset={{ x: 0, y: performanceMode === 'high' ? (isSelected ? 6 : 2) : 0 }}
+          shadowEnabled={performanceMode === 'high' && !isDragging && !isResizing}
+        />
+      ) : (
+        <Rect
+          width={currentWidth}
+          height={currentHeight}
+          fill={colors.primary}
+          cornerRadius={CORNER_RADIUS}
+          shadowColor="rgba(0, 0, 0, 0.1)"
+          shadowBlur={performanceMode === 'high' ? (isSelected ? 20 : 8) : 0}
+          shadowOffset={{ x: 0, y: performanceMode === 'high' ? (isSelected ? 6 : 2) : 0 }}
+          shadowEnabled={performanceMode === 'high' && !isDragging && !isResizing}
+        />
+      )}
 
 
 

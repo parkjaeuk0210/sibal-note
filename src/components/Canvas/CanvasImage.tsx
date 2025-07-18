@@ -80,8 +80,8 @@ export const CanvasImage = ({
     updateImage(image.id, {
       x: node.x(),
       y: node.y(),
-      width: Math.max(5, node.width() * scaleX),
-      height: Math.max(5, node.height() * scaleY),
+      width: Math.max(50, node.width() * scaleX),
+      height: Math.max(50, node.height() * scaleY),
     });
   };
 
@@ -138,10 +138,18 @@ export const CanvasImage = ({
         <Transformer
           ref={transformerRef}
           boundBoxFunc={(oldBox, newBox) => {
-            // Limit minimum size
-            if (newBox.width < 50 || newBox.height < 50) {
-              return oldBox;
+            // Limit minimum size and maintain aspect ratio
+            const aspectRatio = image.width / image.height;
+            
+            if (newBox.width < 50) {
+              newBox.width = 50;
+              newBox.height = 50 / aspectRatio;
             }
+            if (newBox.height < 50) {
+              newBox.height = 50;
+              newBox.width = 50 * aspectRatio;
+            }
+            
             return newBox;
           }}
           enabledAnchors={[

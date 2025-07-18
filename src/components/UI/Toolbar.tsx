@@ -83,34 +83,42 @@ export const Toolbar = () => {
               return;
             }
             
-            // Handle image
-            const img = new Image();
-            img.onload = () => {
-              const maxSize = 400;
-              let width = img.width;
-              let height = img.height;
+            // Get original dimensions first
+            const originalImg = new Image();
+            originalImg.onload = () => {
+              const originalWidth = originalImg.width;
+              const originalHeight = originalImg.height;
               
-              if (width > maxSize || height > maxSize) {
-                const ratio = Math.min(maxSize / width, maxSize / height);
-                width *= ratio;
-                height *= ratio;
-              }
-              
-              addImage({
-                x,
-                y,
-                width,
-                height,
-                url: compressedUrl,
-                originalWidth: img.width,
-                originalHeight: img.height,
-                fileName: file.name,
-                fileSize: compressedSize,
-              });
-              
-              console.log(`Image compressed: ${formatBytes(file.size)} → ${formatBytes(compressedSize)}`);
+              // Handle compressed image
+              const img = new Image();
+              img.onload = () => {
+                const maxSize = 400;
+                let width = originalWidth;
+                let height = originalHeight;
+                
+                if (width > maxSize || height > maxSize) {
+                  const ratio = Math.min(maxSize / width, maxSize / height);
+                  width *= ratio;
+                  height *= ratio;
+                }
+                
+                addImage({
+                  x,
+                  y,
+                  width,
+                  height,
+                  url: compressedUrl,
+                  originalWidth: originalWidth,
+                  originalHeight: originalHeight,
+                  fileName: file.name,
+                  fileSize: compressedSize,
+                });
+                
+                console.log(`Image compressed: ${formatBytes(file.size)} → ${formatBytes(compressedSize)}`);
+              };
+              img.src = compressedUrl;
             };
-            img.src = compressedUrl;
+            originalImg.src = url;
           } catch (error) {
             console.error('Image compression failed:', error);
             alert(`이미지 처리 중 오류가 발생했습니다: ${file.name}`);

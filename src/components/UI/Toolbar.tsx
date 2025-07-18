@@ -1,5 +1,5 @@
 import { useCanvasStore } from '../../store/canvasStore';
-import { NoteColor } from '../../types';
+import { ColorPicker } from './ColorPicker';
 
 export const Toolbar = () => {
   const { notes, selectedNoteId, deleteNote, clearCanvas, viewport, setViewport, updateNote } = useCanvasStore();
@@ -15,14 +15,6 @@ export const Toolbar = () => {
     }
   };
 
-  const colors: { name: NoteColor; hex: string }[] = [
-    { name: 'yellow', hex: '#FEF08A' },
-    { name: 'pink', hex: '#FBCFE8' },
-    { name: 'blue', hex: '#93C5FD' },
-    { name: 'green', hex: '#86EFAC' },
-    { name: 'purple', hex: '#C4B5FD' },
-    { name: 'orange', hex: '#FED7AA' },
-  ];
 
   return (
     <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 glass rounded-full px-6 py-3 shadow-lg">
@@ -45,19 +37,10 @@ export const Toolbar = () => {
           <>
             <div className="w-px h-6 bg-gray-300" />
             
-            <div className="flex gap-1">
-              {colors.map((color) => (
-                <button
-                  key={color.name}
-                  onClick={() => selectedNoteId && updateNote(selectedNoteId, { color: color.name })}
-                  className={`w-6 h-6 rounded-full transition-transform hover:scale-110 ${
-                    selectedNote.color === color.name ? 'ring-2 ring-gray-600 ring-offset-2' : ''
-                  }`}
-                  style={{ backgroundColor: color.hex }}
-                  title={`색상 변경: ${color.name}`}
-                />
-              ))}
-            </div>
+            <ColorPicker
+              currentColor={selectedNote.color}
+              onColorChange={(color) => selectedNoteId && updateNote(selectedNoteId, { color })}
+            />
             
             <button
               onClick={handleDelete}

@@ -1,0 +1,36 @@
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: inherit;
+  }
+}
+
+.color-wheel-container {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.color-option {
+  animation: slideIn 0.3s ease-out both;
+}
+
+.color-option:nth-child(1) { animation-delay: 0s; }
+.color-option:nth-child(2) { animation-delay: 0.03s; }
+.color-option:nth-child(3) { animation-delay: 0.06s; }
+.color-option:nth-child(4) { animation-delay: 0.09s; }
+.color-option:nth-child(5) { animation-delay: 0.12s; }
+.color-option:nth-child(6) { animation-delay: 0.15s; }

@@ -36,8 +36,7 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
   const performanceMode = useMemo(() => getPerformanceMode(), []);
   const isMobileDevice = useMemo(() => isMobile(), []);
   
-  // Drag state for mobile optimization
-  const [dragPosition, setDragPosition] = useState({ x: note.x, y: note.y });
+  // RAF for mobile optimization
   const rafId = useRef<number | null>(null);
   
   const updateNote = useCanvasStore((state) => state.updateNote);
@@ -107,7 +106,6 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
     setIsDragging(true);
     selectNote(note.id);
     onDraggingChange?.(true);
-    setDragPosition({ x: note.x, y: note.y });
     e.cancelBubble = true;
   }, [selectNote, note.id, isEditing, onDraggingChange]);
 
@@ -121,9 +119,8 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
     
     // Use RAF for smoother updates on mobile
     rafId.current = requestAnimationFrame(() => {
-      const newX = e.target.x();
-      const newY = e.target.y();
-      setDragPosition({ x: newX, y: newY });
+      // Force re-render for smoother visual update
+      e.target.getLayer()?.batchDraw();
     });
   }, [isDragging, isMobileDevice]);
 
@@ -148,7 +145,6 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
     dragEndFlag.current = true;
     setIsDragging(false);
     onDraggingChange?.(false);
-    setDragPosition({ x: finalX, y: finalY });
     
     // Reset flag after next frame
     requestAnimationFrame(() => {

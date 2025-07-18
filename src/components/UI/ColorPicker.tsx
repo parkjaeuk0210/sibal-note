@@ -52,7 +52,7 @@ export const ColorPicker = ({ currentColor, onColorChange }: ColorPickerProps) =
   // Calculate position for each color in the wheel
   const getColorPosition = (index: number) => {
     const angle = (index * 60 - 90) * (Math.PI / 180);
-    const radius = 36;
+    const radius = 45;
     return {
       x: Math.cos(angle) * radius,
       y: Math.sin(angle) * radius,
@@ -76,13 +76,13 @@ export const ColorPicker = ({ currentColor, onColorChange }: ColorPickerProps) =
 
       {/* Color wheel popover */}
       {isOpen && (
-        <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2">
+        <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 z-50">
           {/* Backdrop blur */}
           <div 
-            className="relative w-28 h-28 glass rounded-full p-4 color-wheel-container"
+            className="relative w-32 h-32 glass rounded-full p-2 color-wheel-container flex items-center justify-center"
           >
             {/* Center current color */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
               <div 
                 className="w-8 h-8 rounded-full shadow-lg ring-2 ring-white"
                 style={{ backgroundColor: currentColorHex }}
@@ -101,14 +101,15 @@ export const ColorPicker = ({ currentColor, onColorChange }: ColorPickerProps) =
                     onColorChange(color.name);
                     setIsOpen(false);
                   }}
-                  className={`absolute w-6 h-6 rounded-full shadow-md transition-all duration-200 hover:scale-125 hover:shadow-lg color-option ${
+                  className={`absolute w-7 h-7 rounded-full shadow-md transition-all duration-200 hover:scale-125 hover:shadow-lg hover:z-20 cursor-pointer ${
                     isSelected ? 'ring-2 ring-white ring-offset-1' : ''
                   }`}
                   style={{
                     backgroundColor: color.hex,
-                    left: '50%',
-                    top: '50%',
-                    transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`,
+                    left: `calc(50% + ${position.x}px)`,
+                    top: `calc(50% + ${position.y}px)`,
+                    transform: 'translate(-50%, -50%)',
+                    animation: `colorFadeIn 0.3s ease-out ${index * 0.03}s both`,
                   }}
                   title={`색상: ${color.name}`}
                   aria-label={`색상 ${color.name}로 변경`}

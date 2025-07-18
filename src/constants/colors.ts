@@ -1,3 +1,4 @@
+// Light theme colors
 export const NOTE_COLORS = {
   yellow: {
     primary: '#FFFBEB',
@@ -40,6 +41,52 @@ export const NOTE_COLORS = {
     accent: '#F97316',
     header: 'rgba(249, 115, 22, 0.1)',
     border: 'rgba(249, 115, 22, 0.15)',
+  },
+} as const;
+
+// Dark theme colors
+export const NOTE_COLORS_DARK = {
+  yellow: {
+    primary: '#78350F',
+    secondary: '#92400E',
+    accent: '#F59E0B',
+    header: 'rgba(245, 158, 11, 0.2)',
+    border: 'rgba(245, 158, 11, 0.3)',
+  },
+  pink: {
+    primary: '#831843',
+    secondary: '#9F1239',
+    accent: '#EC4899',
+    header: 'rgba(236, 72, 153, 0.2)',
+    border: 'rgba(236, 72, 153, 0.3)',
+  },
+  blue: {
+    primary: '#1E3A8A',
+    secondary: '#1E40AF',
+    accent: '#3B82F6',
+    header: 'rgba(59, 130, 246, 0.2)',
+    border: 'rgba(59, 130, 246, 0.3)',
+  },
+  green: {
+    primary: '#14532D',
+    secondary: '#166534',
+    accent: '#22C55E',
+    header: 'rgba(34, 197, 94, 0.2)',
+    border: 'rgba(34, 197, 94, 0.3)',
+  },
+  purple: {
+    primary: '#4C1D95',
+    secondary: '#5B21B6',
+    accent: '#9333EA',
+    header: 'rgba(147, 51, 234, 0.2)',
+    border: 'rgba(147, 51, 234, 0.3)',
+  },
+  orange: {
+    primary: '#7C2D12',
+    secondary: '#9A3412',
+    accent: '#F97316',
+    header: 'rgba(249, 115, 22, 0.2)',
+    border: 'rgba(249, 115, 22, 0.3)',
   },
 } as const;
 

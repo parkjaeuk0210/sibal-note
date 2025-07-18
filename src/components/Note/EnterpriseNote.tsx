@@ -4,7 +4,7 @@ import Konva from 'konva';
 import { Note } from '../../types';
 import { useCanvasStore } from '../../store/canvasStore';
 import { ResizeHandles } from './ResizeHandles';
-import { NOTE_COLORS, PADDING, CORNER_RADIUS, FONT_SIZE, LINE_HEIGHT } from '../../constants/colors';
+import { NOTE_COLORS, NOTE_COLORS_DARK, PADDING, CORNER_RADIUS, FONT_SIZE, LINE_HEIGHT } from '../../constants/colors';
 import { getPerformanceMode, isMobile } from '../../utils/device';
 
 interface EnterpriseNoteProps {
@@ -42,8 +42,12 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
   const updateNote = useCanvasStore((state) => state.updateNote);
   const selectNote = useCanvasStore((state) => state.selectNote);
   const isSelected = useCanvasStore((state) => state.selectedNoteId === note.id);
+  const isDarkMode = useCanvasStore((state) => state.isDarkMode);
   
-  const colors = useMemo(() => NOTE_COLORS[note.color], [note.color]);
+  const colors = useMemo(
+    () => isDarkMode ? NOTE_COLORS_DARK[note.color] : NOTE_COLORS[note.color], 
+    [note.color, isDarkMode]
+  );
 
   // Current dimensions (either temp during resize or actual note dimensions)
   const currentWidth = tempSize?.width || note.width;
@@ -286,7 +290,7 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
           text={note.content || ''}
           fontSize={FONT_SIZE}
           fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif"
-          fill="rgba(0, 0, 0, 0.85)"
+          fill={isDarkMode ? "rgba(255, 255, 255, 0.9)" : "rgba(0, 0, 0, 0.85)"}
           wrap="word"
           lineHeight={LINE_HEIGHT}
         />

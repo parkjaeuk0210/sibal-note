@@ -6,6 +6,7 @@ interface CanvasStore {
   notes: Note[];
   viewport: Viewport;
   selectedNoteId: string | null;
+  isDarkMode: boolean;
   
   addNote: (x: number, y: number) => void;
   updateNote: (id: string, updates: Partial<Note>) => void;
@@ -15,6 +16,8 @@ interface CanvasStore {
   setViewport: (viewport: Viewport) => void;
   
   clearCanvas: () => void;
+  toggleDarkMode: () => void;
+  setDarkMode: (isDark: boolean) => void;
 }
 
 const defaultColors: NoteColor[] = ['yellow', 'pink', 'blue', 'green', 'purple', 'orange'];
@@ -25,6 +28,7 @@ export const useCanvasStore = create<CanvasStore>()(
       notes: [],
       viewport: { x: 0, y: 0, scale: 1 },
       selectedNoteId: null,
+      isDarkMode: false,
       
       addNote: (x, y) => {
         const newNote: Note = {
@@ -76,6 +80,14 @@ export const useCanvasStore = create<CanvasStore>()(
           viewport: { x: 0, y: 0, scale: 1 },
           selectedNoteId: null,
         });
+      },
+      
+      toggleDarkMode: () => {
+        set((state) => ({ isDarkMode: !state.isDarkMode }));
+      },
+      
+      setDarkMode: (isDark) => {
+        set({ isDarkMode: isDark });
       },
     }),
     {

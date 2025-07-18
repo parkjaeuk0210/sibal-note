@@ -181,7 +181,7 @@ export const Toolbar = () => {
         </button>
 
         <div className="text-sm text-gray-600">
-          {notes.length}개 메모 | 배율 {Math.round(viewport.scale * 100)}%
+          {Math.round(viewport.scale * 100)}%
           {storageUsage > 50 && (
             <span className={`ml-2 ${storageUsage > 80 ? 'text-red-500' : 'text-orange-500'}`}>
               | 저장공간 {storageUsage}%

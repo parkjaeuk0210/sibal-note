@@ -266,46 +266,92 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
       opacity={isDragging ? (performanceMode === 'high' ? 0.85 : 0.95) : isResizing ? 0.9 : 1}
       onDragMove={handleDragMove}
     >
-      {/* Single clean card background */}
-      {note.color === 'blue' ? (
-        <Shape
-          sceneFunc={(context) => {
-            const gradient = context.createLinearGradient(0, 0, currentWidth * 0.5, currentHeight);
-            if (isDarkMode) {
-              // Dark mode gradient - deeper blues
-              gradient.addColorStop(0, 'rgba(30, 58, 138, 0.95)');
-              gradient.addColorStop(0.5, 'rgba(29, 78, 216, 0.88)');
-              gradient.addColorStop(1, 'rgba(37, 99, 235, 0.82)');
-            } else {
-              // Light mode gradient
-              gradient.addColorStop(0, 'rgba(224, 242, 254, 0.95)');
-              gradient.addColorStop(0.5, 'rgba(186, 230, 253, 0.88)');
-              gradient.addColorStop(1, 'rgba(147, 197, 253, 0.82)');
+      {/* Single clean card background with gradient */}
+      <Shape
+        sceneFunc={(context) => {
+          const gradient = context.createLinearGradient(0, 0, currentWidth * 0.5, currentHeight);
+          
+          if (isDarkMode) {
+            // Dark mode gradients
+            switch (note.color) {
+              case 'yellow':
+                gradient.addColorStop(0, 'rgba(120, 53, 15, 0.95)');
+                gradient.addColorStop(0.5, 'rgba(146, 64, 14, 0.88)');
+                gradient.addColorStop(1, 'rgba(180, 83, 9, 0.82)');
+                break;
+              case 'pink':
+                gradient.addColorStop(0, 'rgba(131, 24, 67, 0.95)');
+                gradient.addColorStop(0.5, 'rgba(159, 18, 57, 0.88)');
+                gradient.addColorStop(1, 'rgba(190, 24, 93, 0.82)');
+                break;
+              case 'blue':
+                gradient.addColorStop(0, 'rgba(30, 58, 138, 0.95)');
+                gradient.addColorStop(0.5, 'rgba(29, 78, 216, 0.88)');
+                gradient.addColorStop(1, 'rgba(37, 99, 235, 0.82)');
+                break;
+              case 'green':
+                gradient.addColorStop(0, 'rgba(20, 83, 45, 0.95)');
+                gradient.addColorStop(0.5, 'rgba(22, 101, 52, 0.88)');
+                gradient.addColorStop(1, 'rgba(34, 197, 94, 0.82)');
+                break;
+              case 'purple':
+                gradient.addColorStop(0, 'rgba(76, 29, 149, 0.95)');
+                gradient.addColorStop(0.5, 'rgba(91, 33, 182, 0.88)');
+                gradient.addColorStop(1, 'rgba(124, 58, 237, 0.82)');
+                break;
+              case 'orange':
+                gradient.addColorStop(0, 'rgba(124, 45, 18, 0.95)');
+                gradient.addColorStop(0.5, 'rgba(154, 52, 18, 0.88)');
+                gradient.addColorStop(1, 'rgba(194, 65, 12, 0.82)');
+                break;
             }
-            
-            context.beginPath();
-            context.roundRect(0, 0, currentWidth, currentHeight, CORNER_RADIUS);
-            context.fillStyle = gradient;
-            context.fill();
-            context.closePath();
-          }}
-          shadowColor={isDarkMode ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.1)"}
-          shadowBlur={performanceMode === 'high' ? (isSelected ? 20 : 8) : 0}
-          shadowOffset={{ x: 0, y: performanceMode === 'high' ? (isSelected ? 6 : 2) : 0 }}
-          shadowEnabled={performanceMode === 'high' && !isDragging && !isResizing}
-        />
-      ) : (
-        <Rect
-          width={currentWidth}
-          height={currentHeight}
-          fill={colors.primary}
-          cornerRadius={CORNER_RADIUS}
-          shadowColor="rgba(0, 0, 0, 0.1)"
-          shadowBlur={performanceMode === 'high' ? (isSelected ? 20 : 8) : 0}
-          shadowOffset={{ x: 0, y: performanceMode === 'high' ? (isSelected ? 6 : 2) : 0 }}
-          shadowEnabled={performanceMode === 'high' && !isDragging && !isResizing}
-        />
-      )}
+          } else {
+            // Light mode gradients
+            switch (note.color) {
+              case 'yellow':
+                gradient.addColorStop(0, 'rgba(254, 243, 199, 0.95)');
+                gradient.addColorStop(0.5, 'rgba(253, 230, 138, 0.88)');
+                gradient.addColorStop(1, 'rgba(252, 211, 77, 0.82)');
+                break;
+              case 'pink':
+                gradient.addColorStop(0, 'rgba(252, 231, 243, 0.95)');
+                gradient.addColorStop(0.5, 'rgba(251, 207, 232, 0.88)');
+                gradient.addColorStop(1, 'rgba(249, 168, 212, 0.82)');
+                break;
+              case 'blue':
+                gradient.addColorStop(0, 'rgba(224, 242, 254, 0.95)');
+                gradient.addColorStop(0.5, 'rgba(186, 230, 253, 0.88)');
+                gradient.addColorStop(1, 'rgba(147, 197, 253, 0.82)');
+                break;
+              case 'green':
+                gradient.addColorStop(0, 'rgba(236, 253, 245, 0.95)');
+                gradient.addColorStop(0.5, 'rgba(209, 250, 229, 0.88)');
+                gradient.addColorStop(1, 'rgba(134, 239, 172, 0.82)');
+                break;
+              case 'purple':
+                gradient.addColorStop(0, 'rgba(243, 232, 255, 0.95)');
+                gradient.addColorStop(0.5, 'rgba(233, 213, 255, 0.88)');
+                gradient.addColorStop(1, 'rgba(196, 167, 231, 0.82)');
+                break;
+              case 'orange':
+                gradient.addColorStop(0, 'rgba(254, 243, 199, 0.95)');
+                gradient.addColorStop(0.5, 'rgba(253, 230, 138, 0.88)');
+                gradient.addColorStop(1, 'rgba(251, 191, 36, 0.82)');
+                break;
+            }
+          }
+          
+          context.beginPath();
+          context.roundRect(0, 0, currentWidth, currentHeight, CORNER_RADIUS);
+          context.fillStyle = gradient;
+          context.fill();
+          context.closePath();
+        }}
+        shadowColor={isDarkMode ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.1)"}
+        shadowBlur={performanceMode === 'high' ? (isSelected ? 20 : 8) : 0}
+        shadowOffset={{ x: 0, y: performanceMode === 'high' ? (isSelected ? 6 : 2) : 0 }}
+        shadowEnabled={performanceMode === 'high' && !isDragging && !isResizing}
+      />
 
 
 

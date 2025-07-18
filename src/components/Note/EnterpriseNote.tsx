@@ -5,6 +5,7 @@ import { Note } from '../../types';
 import { useCanvasStore } from '../../store/canvasStore';
 import { ResizeHandles } from './ResizeHandles';
 import { NOTE_COLORS, PADDING, CORNER_RADIUS, FONT_SIZE, LINE_HEIGHT } from '../../constants/colors';
+import { getPerformanceMode, isMobile } from '../../utils/device';
 
 interface EnterpriseNoteProps {
   note: Note;
@@ -29,6 +30,15 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
   // Click timer to differentiate single/double click
   const clickTimer = useRef<number | null>(null);
   const clickCount = useRef(0);
+  const dragEndFlag = useRef(false);
+  
+  // Get performance mode
+  const performanceMode = useMemo(() => getPerformanceMode(), []);
+  const isMobileDevice = useMemo(() => isMobile(), []);
+  
+  // Drag state for mobile optimization
+  const [dragPosition, setDragPosition] = useState({ x: note.x, y: note.y });
+  const rafId = useRef<number | null>(null);
   
   const updateNote = useCanvasStore((state) => state.updateNote);
   const selectNote = useCanvasStore((state) => state.selectNote);
@@ -60,22 +70,31 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
       shadowEnabled: false,
     });
 
-    if (isSelected && !isResizing) {
-      group.to({
-        scaleX: 1.03,
-        scaleY: 1.03,
-        duration: 0.2,
-        easing: Konva.Easings.EaseOut,
-      });
+    if (performanceMode === 'high') {
+      // Only animate on desktop
+      if (isSelected && !isResizing) {
+        group.to({
+          scaleX: 1.03,
+          scaleY: 1.03,
+          duration: 0.2,
+          easing: Konva.Easings.EaseOut,
+        });
+      } else {
+        group.to({
+          scaleX: 1,
+          scaleY: 1,
+          duration: 0.2,
+          easing: Konva.Easings.EaseOut,
+        });
+      }
     } else {
-      group.to({
-        scaleX: 1,
-        scaleY: 1,
-        duration: 0.2,
-        easing: Konva.Easings.EaseOut,
+      // Instant change on mobile
+      group.setAttrs({
+        scaleX: isSelected && !isResizing ? 1.03 : 1,
+        scaleY: isSelected && !isResizing ? 1.03 : 1,
       });
     }
-  }, [isSelected, isHovered, isDragging, isResizing, colors.accent]);
+  }, [isSelected, isHovered, isDragging, isResizing, colors.accent, performanceMode]);
 
   const handleDragStart = useCallback((e: Konva.KonvaEventObject<DragEvent>) => {
     // Don't drag if editing
@@ -88,29 +107,60 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
     setIsDragging(true);
     selectNote(note.id);
     onDraggingChange?.(true);
+    setDragPosition({ x: note.x, y: note.y });
     e.cancelBubble = true;
   }, [selectNote, note.id, isEditing, onDraggingChange]);
+
+  const handleDragMove = useCallback((e: Konva.KonvaEventObject<DragEvent>) => {
+    if (!isDragging || !isMobileDevice) return;
+    
+    // Cancel previous RAF
+    if (rafId.current) {
+      cancelAnimationFrame(rafId.current);
+    }
+    
+    // Use RAF for smoother updates on mobile
+    rafId.current = requestAnimationFrame(() => {
+      const newX = e.target.x();
+      const newY = e.target.y();
+      setDragPosition({ x: newX, y: newY });
+    });
+  }, [isDragging, isMobileDevice]);
 
   const handleDragEnd = useCallback((e: Konva.KonvaEventObject<DragEvent>) => {
     if (!isDragging) return;
     
+    // Cancel any pending RAF
+    if (rafId.current) {
+      cancelAnimationFrame(rafId.current);
+      rafId.current = null;
+    }
+    
+    const finalX = e.target.x();
+    const finalY = e.target.y();
+    
     updateNote(note.id, {
-      x: e.target.x(),
-      y: e.target.y(),
+      x: finalX,
+      y: finalY,
     });
     
-    // Delay resetting isDragging to prevent click event
-    setTimeout(() => {
-      setIsDragging(false);
-      onDraggingChange?.(false);
-    }, 50);
+    // Use flag instead of setTimeout for mobile performance
+    dragEndFlag.current = true;
+    setIsDragging(false);
+    onDraggingChange?.(false);
+    setDragPosition({ x: finalX, y: finalY });
+    
+    // Reset flag after next frame
+    requestAnimationFrame(() => {
+      dragEndFlag.current = false;
+    });
   }, [isDragging, updateNote, note.id, onDraggingChange]);
 
   const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
     e.cancelBubble = true;
     
     // Don't process click if we just finished dragging
-    if (isDragging) return;
+    if (isDragging || dragEndFlag.current) return;
     
     clickCount.current += 1;
     
@@ -120,7 +170,7 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
       
       clickTimer.current = setTimeout(() => {
         clickCount.current = 0;
-      }, 300);
+      }, isMobileDevice ? 300 : 250);
     }
   }, [selectNote, note.id, isDragging]);
 
@@ -213,7 +263,8 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
           }
         }
       }}
-      opacity={isDragging ? 0.85 : isResizing ? 0.9 : 1}
+      opacity={isDragging ? (performanceMode === 'high' ? 0.85 : 0.95) : isResizing ? 0.9 : 1}
+      onDragMove={handleDragMove}
     >
       {/* Single clean card background */}
       <Rect
@@ -222,9 +273,9 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
         fill={colors.primary}
         cornerRadius={CORNER_RADIUS}
         shadowColor="rgba(0, 0, 0, 0.1)"
-        shadowBlur={isSelected ? 20 : 8}
-        shadowOffset={{ x: 0, y: isSelected ? 6 : 2 }}
-        shadowEnabled={!isDragging && !isResizing}
+        shadowBlur={performanceMode === 'high' ? (isSelected ? 20 : 8) : 0}
+        shadowOffset={{ x: 0, y: performanceMode === 'high' ? (isSelected ? 6 : 2) : 0 }}
+        shadowEnabled={performanceMode === 'high' && !isDragging && !isResizing}
       />
 
 

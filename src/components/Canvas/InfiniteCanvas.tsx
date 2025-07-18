@@ -1,10 +1,12 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { Stage, Layer } from 'react-konva';
 import { useGesture } from '@use-gesture/react';
 import { EnterpriseNote } from '../Note/EnterpriseNote';
 import { useCanvasStore } from '../../store/canvasStore';
 import { useNoteEditor } from '../../hooks/useNoteEditor';
 import Konva from 'konva';
+import { getPerformanceMode, isMobile, isTouch } from '../../utils/device';
+import { useMobileOptimizations } from '../../hooks/useMobileOptimizations';
 
 export const InfiniteCanvas = React.memo(() => {
   const stageRef = useRef<Konva.Stage>(null);
@@ -17,6 +19,20 @@ export const InfiniteCanvas = React.memo(() => {
   const addNote = useCanvasStore((state) => state.addNote);
   const selectNote = useCanvasStore((state) => state.selectNote);
   const updateNote = useCanvasStore((state) => state.updateNote);
+  
+  // Device optimizations
+  const performanceMode = useMemo(() => getPerformanceMode(), []);
+  const isMobileDevice = useMemo(() => isMobile(), []);
+  const isTouchDevice = useMemo(() => isTouch(), []);
+  
+  // Apply mobile optimizations
+  useMobileOptimizations();
+  
+  // RAF for smooth viewport updates
+  const rafId = useRef<number | null>(null);
+  const pendingViewport = useRef<typeof viewport | null>(null);
+  const lastUpdateTime = useRef<number>(0);
+  const updateThrottle = performanceMode === 'low' ? 32 : 16; // 30fps vs 60fps
   
   // Check if any note is currently being resized or dragged
   const [isAnyNoteResizing, setIsAnyNoteResizing] = useState(false);
@@ -59,10 +75,64 @@ export const InfiniteCanvas = React.memo(() => {
     }
   }, [isAnyNoteDragging, isAnyNoteResizing]);
 
+  // Optimized viewport update with throttling for mobile
+  const updateViewportRAF = useCallback((newViewport: typeof viewport) => {
+    const now = Date.now();
+    const timeSinceLastUpdate = now - lastUpdateTime.current;
+    
+    // Throttle updates on low performance mode
+    if (performanceMode === 'low' && timeSinceLastUpdate < updateThrottle) {
+      pendingViewport.current = newViewport;
+      
+      if (!rafId.current) {
+        rafId.current = requestAnimationFrame(() => {
+          const elapsed = Date.now() - lastUpdateTime.current;
+          if (elapsed >= updateThrottle && pendingViewport.current) {
+            setViewport(pendingViewport.current);
+            lastUpdateTime.current = Date.now();
+            pendingViewport.current = null;
+          }
+          rafId.current = null;
+        });
+      }
+      return;
+    }
+    
+    // Immediate update for high performance mode
+    pendingViewport.current = newViewport;
+    
+    if (rafId.current) {
+      cancelAnimationFrame(rafId.current);
+    }
+    
+    rafId.current = requestAnimationFrame(() => {
+      if (pendingViewport.current) {
+        setViewport(pendingViewport.current);
+        lastUpdateTime.current = now;
+        pendingViewport.current = null;
+      }
+      rafId.current = null;
+    });
+  }, [setViewport, performanceMode, updateThrottle]);
+
+  // Cleanup RAF on unmount
+  useEffect(() => {
+    return () => {
+      if (rafId.current) {
+        cancelAnimationFrame(rafId.current);
+      }
+    };
+  }, []);
+
   // Pan and zoom gestures
   useGesture(
     {
-      onWheel: ({ delta: [, dy] }) => {
+      onWheel: ({ delta: [, dy], event }) => {
+        if (isMobileDevice) return; // Disable wheel zoom on mobile
+        
+        // Prevent default to avoid bounce on Mac
+        event.preventDefault();
+        
         const stage = stageRef.current;
         if (!stage) return;
 
@@ -77,7 +147,7 @@ export const InfiniteCanvas = React.memo(() => {
 
         const newScale = Math.min(Math.max(0.1, oldScale - dy * 0.001), 5);
         
-        setViewport({
+        updateViewportRAF({
           scale: newScale,
           x: pointer.x - mousePointTo.x * newScale,
           y: pointer.y - mousePointTo.y * newScale,
@@ -113,7 +183,7 @@ export const InfiniteCanvas = React.memo(() => {
           return;
         }
         
-        setViewport({
+        updateViewportRAF({
           ...viewport,
           x: viewport.x + dx,
           y: viewport.y + dy,
@@ -133,7 +203,7 @@ export const InfiniteCanvas = React.memo(() => {
           y: (pointer.y - viewport.y) / viewport.scale,
         };
 
-        setViewport({
+        updateViewportRAF({
           scale: newScale,
           x: pointer.x - mousePointTo.x * newScale,
           y: pointer.y - mousePointTo.y * newScale,
@@ -146,10 +216,11 @@ export const InfiniteCanvas = React.memo(() => {
         filterTaps: true,
         from: () => [viewport.x, viewport.y],
         enabled: !isAnyNoteResizing && !isAnyNoteDragging,
+        threshold: isMobileDevice ? 10 : 5,
       },
       pinch: { from: () => [viewport.scale * 200, 0] },
       eventOptions: {
-        passive: false,
+        passive: !isTouchDevice, // iOS has issues with passive listeners
       },
     }
   );
@@ -183,7 +254,13 @@ export const InfiniteCanvas = React.memo(() => {
   }, [viewport.x, viewport.y, viewport.scale, addNote]);
 
   return (
-    <div ref={containerRef} className="w-full h-full" style={{ touchAction: 'none' }}>
+    <div ref={containerRef} className="w-full h-full" style={{ 
+      touchAction: 'none',
+      WebkitTouchCallout: 'none',
+      WebkitUserSelect: 'none',
+      userSelect: 'none',
+      cursor: isCanvasDragging ? 'grabbing' : 'grab',
+    }}>
       <Stage
         ref={stageRef}
         width={dimensions.width}
@@ -194,6 +271,9 @@ export const InfiniteCanvas = React.memo(() => {
         y={viewport.y}
         scaleX={viewport.scale}
         scaleY={viewport.scale}
+        listening={!isCanvasDragging || performanceMode !== 'low'} // Optimize event handling during drag
+        perfectDrawEnabled={performanceMode === 'high'}
+        pixelRatio={performanceMode === 'low' ? 1 : window.devicePixelRatio}
       >
         <Layer>
           {notes.map((note) => (

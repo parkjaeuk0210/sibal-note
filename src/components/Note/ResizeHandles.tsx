@@ -1,6 +1,7 @@
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { Group, Rect } from 'react-konva';
 import { Note } from '../../types';
+import { getPerformanceMode, isMobile } from '../../utils/device';
 
 interface ResizeHandlesProps {
   note: Note;
@@ -12,7 +13,6 @@ interface ResizeHandlesProps {
   onResizeEnd: (width: number, height: number, x?: number, y?: number) => void;
 }
 
-const HANDLE_SIZE = 10;
 const MIN_WIDTH = 180;
 const MIN_HEIGHT = 120;
 const MAX_WIDTH = 600;
@@ -28,6 +28,14 @@ export const ResizeHandles = ({
   onResizeEnd,
 }: ResizeHandlesProps) => {
   const startPos = useRef({ x: 0, y: 0, width: 0, height: 0, noteX: 0, noteY: 0 });
+  const rafId = useRef<number | null>(null);
+  const performanceMode = useMemo(() => getPerformanceMode(), []);
+  const isMobileDevice = useMemo(() => isMobile(), []);
+  
+  // Larger handle size on mobile for easier touch
+  const HANDLE_SIZE = isMobileDevice ? 16 : 10;
+  const lastUpdateTime = useRef<number>(0);
+  const updateThrottle = performanceMode === 'low' ? 32 : 16;
 
   if (!isHovered && !isSelected) return null;
 
@@ -101,14 +109,30 @@ export const ResizeHandles = ({
 
             const pos = stage.getPointerPosition();
             if (!pos) return;
+            
+            // Cancel previous RAF if exists
+            if (rafId.current) {
+              cancelAnimationFrame(rafId.current);
+            }
+            
+            // Use RAF for smooth updates
+            const now = Date.now();
+            const timeSinceLastUpdate = now - lastUpdateTime.current;
+            
+            // Throttle updates on low performance mode
+            if (performanceMode === 'low' && timeSinceLastUpdate < updateThrottle) {
+              return;
+            }
+            
+            rafId.current = requestAnimationFrame(() => {
+              lastUpdateTime.current = now;
+              const deltaX = (pos.x - startPos.current.x) / stage.scaleX();
+              const deltaY = (pos.y - startPos.current.y) / stage.scaleY();
 
-            const deltaX = (pos.x - startPos.current.x) / stage.scaleX();
-            const deltaY = (pos.y - startPos.current.y) / stage.scaleY();
-
-            let newWidth = startPos.current.width;
-            let newHeight = startPos.current.height;
-            let newX = startPos.current.noteX;
-            let newY = startPos.current.noteY;
+              let newWidth = startPos.current.width;
+              let newHeight = startPos.current.height;
+              let newX = startPos.current.noteX;
+              let newY = startPos.current.noteY;
 
             switch (handle.name) {
               case 'right':
@@ -173,12 +197,13 @@ export const ResizeHandles = ({
               newHeight = MAX_HEIGHT;
             }
 
-            // Call resize move with new dimensions
-            if (newX !== startPos.current.noteX || newY !== startPos.current.noteY) {
-              onResizeMove(newWidth, newHeight, newX, newY);
-            } else {
-              onResizeMove(newWidth, newHeight);
-            }
+              // Call resize move with new dimensions
+              if (newX !== startPos.current.noteX || newY !== startPos.current.noteY) {
+                onResizeMove(newWidth, newHeight, newX, newY);
+              } else {
+                onResizeMove(newWidth, newHeight);
+              }
+            });
           }}
           onDragEnd={(e) => {
             e.cancelBubble = true;
@@ -288,10 +313,13 @@ export const ResizeHandles = ({
             e.evt.stopPropagation();
             e.evt.preventDefault();
           }}
-          opacity={0.8}
-          shadowColor="rgba(0, 0, 0, 0.2)"
-          shadowBlur={4}
-          shadowOffset={{ x: 0, y: 2 }}
+          opacity={isMobileDevice ? 0.9 : 0.8}
+          shadowColor={performanceMode === 'high' ? "rgba(0, 0, 0, 0.2)" : "transparent"}
+          shadowBlur={performanceMode === 'high' ? 4 : 0}
+          shadowOffset={{ x: 0, y: performanceMode === 'high' ? 2 : 0 }}
+          shadowEnabled={performanceMode === 'high'}
+          // Add touch area padding for mobile
+          hitStrokeWidth={isMobileDevice ? 20 : 0}
         />
       ))}
     </Group>

@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { NoteColor } from '../../types';
 import { useCanvasStore } from '../../store/canvasStore';
-import { NOTE_COLORS, NOTE_COLORS_DARK } from '../../constants/colors';
 import '../../styles/color-picker.css';
 
 interface ColorPickerProps {

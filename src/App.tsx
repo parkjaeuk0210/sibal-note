@@ -12,6 +12,7 @@ import { LoginModal } from './components/Auth/LoginModal';
 import { UserProfile } from './components/Auth/UserProfile';
 import { useAuth } from './contexts/AuthContext';
 import { useAppStore } from './contexts/StoreProvider';
+import { useHistoryStore } from './store/historyStore';
 import './styles/glassmorphism.css';
 import './styles/dark-mode.css';
 
@@ -20,6 +21,8 @@ function App() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const undo = useAppStore((state) => state.undo);
   const redo = useAppStore((state) => state.redo);
+  const canUndo = useHistoryStore((state) => state.canUndo());
+  const canRedo = useHistoryStore((state) => state.canRedo());
 
   // Keyboard shortcuts for undo/redo
   useEffect(() => {
@@ -68,8 +71,36 @@ function App() {
         
         {/* Top bar */}
         <div className="fixed top-6 left-6 right-6 z-50 flex justify-between items-center">
-          {/* Left side - Sync status */}
-          <div>
+          {/* Left side - Undo/Redo and Sync status */}
+          <div className="flex items-center gap-3">
+            <div className="flex gap-2">
+              <button
+                onClick={undo}
+                disabled={!canUndo}
+                className={`glass-button rounded-full p-3 transition-transform ${
+                  canUndo ? 'hover:scale-105' : 'opacity-50 cursor-not-allowed'
+                }`}
+                title="실행 취소 (Ctrl+Z)"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                </svg>
+              </button>
+              
+              <button
+                onClick={redo}
+                disabled={!canRedo}
+                className={`glass-button rounded-full p-3 transition-transform ${
+                  canRedo ? 'hover:scale-105' : 'opacity-50 cursor-not-allowed'
+                }`}
+                title="다시 실행 (Ctrl+Y)"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" />
+                </svg>
+              </button>
+            </div>
+            
             <SyncStatus />
           </div>
           

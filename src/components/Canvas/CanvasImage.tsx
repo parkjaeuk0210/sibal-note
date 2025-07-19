@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import { Image, Group, Rect, Transformer, Text } from 'react-konva';
 import Konva from 'konva';
 import { CanvasImage as CanvasImageType } from '../../types';
-import { useCanvasStore } from '../../store/canvasStore';
+import { useAppStore } from '../../contexts/StoreProvider';
 
 interface CanvasImageProps {
   image: CanvasImageType;
@@ -28,7 +28,7 @@ export const CanvasImage = ({
   const [currentSize, setCurrentSize] = useState({ width: image.width, height: image.height });
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   
-  const { updateImage } = useCanvasStore();
+  const updateImage = useAppStore((state) => state.updateImage);
 
   // Load image
   useEffect(() => {

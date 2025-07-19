@@ -1,27 +1,25 @@
 import { useRef, useEffect, useState } from 'react';
-import { useCanvasStore } from '../../store/canvasStore';
+import { useAppStore } from '../../contexts/StoreProvider';
 import { ColorPicker } from './ColorPicker';
 import { FileType } from '../../types';
 import { compressImage, getDataUrlSize, formatBytes } from '../../utils/imageCompression';
 import { getLocalStorageUsagePercent, isLocalStorageNearLimit } from '../../utils/storageUtils';
 
 export const Toolbar = () => {
-  const { 
-    notes, 
-    selectedNoteId, 
-    selectedImageId,
-    selectedFileId,
-    deleteNote, 
-    deleteImage,
-    deleteFile,
-    clearCanvas, 
-    viewport, 
-    updateNote,
-    addImage,
-    addFile,
-    images,
-    files
-  } = useCanvasStore();
+  const notes = useAppStore((state) => state.notes);
+  const selectedNoteId = useAppStore((state) => state.selectedNoteId);
+  const selectedImageId = useAppStore((state) => state.selectedImageId);
+  const selectedFileId = useAppStore((state) => state.selectedFileId);
+  const deleteNote = useAppStore((state) => state.deleteNote);
+  const deleteImage = useAppStore((state) => state.deleteImage);
+  const deleteFile = useAppStore((state) => state.deleteFile);
+  const clearCanvas = useAppStore((state) => state.clearCanvas);
+  const viewport = useAppStore((state) => state.viewport);
+  const updateNote = useAppStore((state) => state.updateNote);
+  const addImage = useAppStore((state) => state.addImage);
+  const addFile = useAppStore((state) => state.addFile);
+  const images = useAppStore((state) => state.images);
+  const files = useAppStore((state) => state.files);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const selectedNote = notes.find(n => n.id === selectedNoteId);

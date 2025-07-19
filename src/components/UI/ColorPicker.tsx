@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { NoteColor } from '../../types';
-import { useCanvasStore } from '../../store/canvasStore';
+import { useAppStore } from '../../contexts/StoreProvider';
 import '../../styles/color-picker.css';
 
 interface ColorPickerProps {
@@ -31,7 +31,7 @@ const darkColors: { name: NoteColor; hex: string }[] = [
 export const ColorPicker = ({ currentColor, onColorChange }: ColorPickerProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const isDarkMode = useCanvasStore((state) => state.isDarkMode);
+  const isDarkMode = useAppStore((state) => state.isDarkMode);
   
   // Use appropriate colors based on theme
   const colors = useMemo(() => isDarkMode ? darkColors : lightColors, [isDarkMode]);

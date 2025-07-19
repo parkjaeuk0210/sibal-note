@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { Group, Rect, Text } from 'react-konva';
 import Konva from 'konva';
 import { CanvasFile as CanvasFileType } from '../../types';
-import { useCanvasStore } from '../../store/canvasStore';
+import { useAppStore } from '../../contexts/StoreProvider';
 
 interface CanvasFileProps {
   file: CanvasFileType;
@@ -20,7 +20,7 @@ export const CanvasFile = ({
   const groupRef = useRef<Konva.Group>(null);
   const [isDragging, setIsDragging] = useState(false);
   
-  const { updateFile } = useCanvasStore();
+  const updateFile = useAppStore((state) => state.updateFile);
 
   const handleDragStart = () => {
     setIsDragging(true);

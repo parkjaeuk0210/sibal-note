@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import { Group, Rect, Text } from 'react-konva';
 import Konva from 'konva';
 import { Note } from '../../types';
-import { useCanvasStore } from '../../store/canvasStore';
+import { useAppStore } from '../../contexts/StoreProvider';
 
 interface StickyNoteProps {
   note: Note;
@@ -12,7 +12,9 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
   const groupRef = useRef<Konva.Group>(null);
   const [isEditing, setIsEditing] = useState(false);
   
-  const { updateNote, selectNote, selectedNoteId } = useCanvasStore();
+  const updateNote = useAppStore((state) => state.updateNote);
+  const selectNote = useAppStore((state) => state.selectNote);
+  const selectedNoteId = useAppStore((state) => state.selectedNoteId);
   const isSelected = selectedNoteId === note.id;
 
   const colorMap = {

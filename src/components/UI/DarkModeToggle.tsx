@@ -1,8 +1,10 @@
-import { useCanvasStore } from '../../store/canvasStore';
+import { useAppStore } from '../../contexts/StoreProvider';
 import { useEffect } from 'react';
 
 export const DarkModeToggle = () => {
-  const { isDarkMode, toggleDarkMode, setDarkMode } = useCanvasStore();
+  const isDarkMode = useAppStore((state) => state.isDarkMode);
+  const toggleDarkMode = useAppStore((state) => state.toggleDarkMode);
+  const setDarkMode = useAppStore((state) => state.setDarkMode);
 
   // Check system preference on mount
   useEffect(() => {

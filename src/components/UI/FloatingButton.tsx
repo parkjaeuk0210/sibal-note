@@ -1,7 +1,8 @@
-import { useCanvasStore } from '../../store/canvasStore';
+import { useAppStore } from '../../contexts/StoreProvider';
 
 export const FloatingButton = () => {
-  const { addNote, viewport } = useCanvasStore();
+  const addNote = useAppStore((state) => state.addNote);
+  const viewport = useAppStore((state) => state.viewport);
 
   const handleAddNote = () => {
     const centerX = (window.innerWidth / 2 - viewport.x) / viewport.scale;

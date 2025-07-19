@@ -47,6 +47,10 @@ const undoableImpl: Undoable = (initializer, options = {}) => {
           notes: (nextState as any).notes,
           images: (nextState as any).images,
           files: (nextState as any).files,
+          viewport: (nextState as any).viewport || { x: 0, y: 0, scale: 1 },
+          selectedNoteId: (nextState as any).selectedNoteId || null,
+          selectedImageId: (nextState as any).selectedImageId || null,
+          selectedFileId: (nextState as any).selectedFileId || null,
         };
         
         historyStore.pushState(snapshot, limit);
@@ -57,7 +61,15 @@ const undoableImpl: Undoable = (initializer, options = {}) => {
       const previousState = historyStore.undo();
       if (previousState) {
         isUndoingOrRedoing = true;
-        set(previousState, true);
+        const currentState = get() as any;
+        // Merge with current state to preserve viewport and other required properties
+        const mergedState = {
+          ...currentState,
+          ...previousState,
+          // Ensure viewport always exists
+          viewport: previousState.viewport || currentState.viewport || { x: 0, y: 0, scale: 1 },
+        };
+        set(mergedState, true);
         isUndoingOrRedoing = false;
       }
     };
@@ -66,7 +78,15 @@ const undoableImpl: Undoable = (initializer, options = {}) => {
       const nextState = historyStore.redo();
       if (nextState) {
         isUndoingOrRedoing = true;
-        set(nextState, true);
+        const currentState = get() as any;
+        // Merge with current state to preserve viewport and other required properties
+        const mergedState = {
+          ...currentState,
+          ...nextState,
+          // Ensure viewport always exists
+          viewport: nextState.viewport || currentState.viewport || { x: 0, y: 0, scale: 1 },
+        };
+        set(mergedState, true);
         isUndoingOrRedoing = false;
       }
     };

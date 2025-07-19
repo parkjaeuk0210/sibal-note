@@ -29,7 +29,7 @@ export const useI18n = () => {
     }
     
     if (typeof message === 'function') {
-      return message(...args);
+      return (message as Function).apply(null, args);
     }
     
     return message;

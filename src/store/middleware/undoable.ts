@@ -1,59 +1,25 @@
-import { StateCreator, StoreMutatorIdentifier } from 'zustand';
+import { StateCreator } from 'zustand';
 import { useHistoryStore } from '../historyStore';
 
 type UndoableOptions = {
   limit?: number;
-  trackedActions?: string[];
-  excludedActions?: string[];
 };
-
-type Write<T, U> = Omit<T, keyof U> & U;
-type Cast<T, U> = T extends U ? T : U;
-
-type UndoableImpl = <
-  T extends object,
-  Mps extends [StoreMutatorIdentifier, unknown][] = [],
-  Mcs extends [StoreMutatorIdentifier, unknown][] = []
->(
-  initializer: StateCreator<T, Mps, Mcs>,
-  options?: UndoableOptions
-) => StateCreator<T, Mps, Mcs>;
 
 type Undoable = <T extends object>(
   initializer: StateCreator<T, [], []>,
   options?: UndoableOptions
 ) => StateCreator<T, [], []>;
 
-declare module 'zustand' {
-  interface StoreMutators<S, A> {
-    undoable: Write<Cast<S, object>, { undo: () => void; redo: () => void }>;
-  }
-}
-
-const undoableImpl: UndoableImpl = (initializer, options = {}) => {
+const undoableImpl: Undoable = (initializer, options = {}) => {
   const {
-    limit = 50,
-    trackedActions = [],
-    excludedActions = [
-      'selectNote',
-      'selectImage', 
-      'selectFile',
-      'setViewport',
-      'toggleDarkMode',
-      'setDarkMode',
-      'initializeFirebaseSync',
-      'cleanupFirebaseSync',
-      'setSyncing',
-      'setSyncError'
-    ]
+    limit = 50
   } = options;
 
   return (set, get, store) => {
     const historyStore = useHistoryStore.getState();
     let isUndoingOrRedoing = false;
-    let actionName = '';
 
-    const setState = (partial: any, replace?: any, action?: any) => {
+    const setState = (partial: any, replace?: any) => {
       if (isUndoingOrRedoing) {
         set(partial, replace);
         return;
@@ -106,17 +72,7 @@ const undoableImpl: UndoableImpl = (initializer, options = {}) => {
     };
 
     const storeInitializer = initializer(
-      (partial, replace, action) => {
-        // Intercept all set calls
-        if (typeof partial === 'function') {
-          setState((state: any) => {
-            const newState = partial(state);
-            return newState;
-          }, replace, action || partial.name);
-        } else {
-          setState(partial, replace, action);
-        }
-      },
+      setState as any,
       get,
       store
     );
@@ -144,4 +100,4 @@ function isStateEqual(state1: any, state2: any): boolean {
   return true;
 }
 
-export const undoable = undoableImpl as unknown as Undoable;
+export const undoable = undoableImpl;

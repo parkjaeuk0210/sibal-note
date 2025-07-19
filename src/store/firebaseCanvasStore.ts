@@ -461,14 +461,10 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
     unsubscribers.forEach(unsubscribe => unsubscribe());
     set({ unsubscribers: [] });
   },
-    }),
-    {
-      trackedActions: [
-        'addNote', 'updateNote', 'deleteNote',
-        'addImage', 'updateImage', 'deleteImage', 
-        'addFile', 'updateFile', 'deleteFile',
-        'clearCanvas'
-      ]
-    }
+  
+  // These will be provided by the undoable middleware
+  undo: () => {},
+  redo: () => {},
+    })
   )
 );

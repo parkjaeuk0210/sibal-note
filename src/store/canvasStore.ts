@@ -224,15 +224,11 @@ export const useCanvasStore = create<CanvasStore>()(
       setDarkMode: (isDark) => {
         set({ isDarkMode: isDark });
       },
-      }),
-      {
-        trackedActions: [
-          'addNote', 'updateNote', 'deleteNote',
-          'addImage', 'updateImage', 'deleteImage', 
-          'addFile', 'updateFile', 'deleteFile',
-          'clearCanvas'
-        ]
-      }
+      
+      // These will be provided by the undoable middleware
+      undo: () => {},
+      redo: () => {},
+      })
     ),
     {
       name: 'interectnote-storage',

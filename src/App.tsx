@@ -1,15 +1,30 @@
+import { useState, useEffect } from 'react';
 import { InfiniteCanvas } from './components/Canvas/InfiniteCanvas';
 import { Toolbar } from './components/UI/Toolbar';
 import { FloatingButton } from './components/UI/FloatingButton';
 import { HelpTooltip } from './components/UI/HelpTooltip';
 import { DarkModeToggle } from './components/UI/DarkModeToggle';
 import { LanguageToggle } from './components/UI/LanguageToggle';
+import { SyncStatus } from './components/UI/SyncStatus';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CanvasErrorBoundary } from './components/CanvasErrorBoundary';
+import { LoginModal } from './components/Auth/LoginModal';
+import { UserProfile } from './components/Auth/UserProfile';
+import { useAuth } from './contexts/AuthContext';
 import './styles/glassmorphism.css';
 import './styles/dark-mode.css';
 
 function App() {
+  const { user, loading } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  useEffect(() => {
+    // Show login modal if user is not logged in after loading
+    if (!loading && !user) {
+      setShowLoginModal(true);
+    }
+  }, [loading, user]);
+
   return (
     <ErrorBoundary>
       <div className="w-screen h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 overflow-hidden relative transition-colors duration-300">
@@ -27,11 +42,35 @@ function App() {
         <FloatingButton />
         <HelpTooltip />
         
-        {/* Settings buttons - top right */}
-        <div className="fixed top-6 right-6 z-50 flex gap-3">
-          <LanguageToggle />
-          <DarkModeToggle />
+        {/* Top bar */}
+        <div className="fixed top-6 left-6 right-6 z-50 flex justify-between items-center">
+          {/* Left side - Sync status */}
+          <div>
+            <SyncStatus />
+          </div>
+          
+          {/* Right side - Settings */}
+          <div className="flex gap-3 items-center">
+            {user ? (
+              <UserProfile />
+            ) : (
+              <button
+                onClick={() => setShowLoginModal(true)}
+                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"
+              >
+                Sign In
+              </button>
+            )}
+            <LanguageToggle />
+            <DarkModeToggle />
+          </div>
         </div>
+        
+        {/* Login Modal */}
+        <LoginModal 
+          isOpen={showLoginModal} 
+          onClose={() => setShowLoginModal(false)} 
+        />
       </div>
     </ErrorBoundary>
   );

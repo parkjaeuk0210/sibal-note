@@ -47,6 +47,22 @@ export const messages = {
     
     // Storage
     storageUsage: (percent: number) => `저장공간 ${percent}%`,
+    
+    // Auth
+    welcomeToInterectNote: 'InterectNote에 오신 것을 환영합니다',
+    loginDescription: '로그인하여 모든 기기에서 메모를 동기화하세요',
+    continueWithGoogle: 'Google로 계속하기',
+    continueAsGuest: '게스트로 계속하기',
+    syncNotice: '게스트 모드에서는 기기 간 동기화가 지원되지 않습니다',
+    loginError: '로그인 중 오류가 발생했습니다',
+    logout: '로그아웃',
+    syncStatus: '동기화 상태',
+    syncing: '동기화 중...',
+    synced: '동기화됨',
+    offline: '오프라인',
+    syncError: '동기화 오류',
+    guestUser: '게스트 사용자',
+    guestMode: '게스트 모드',
   },
   en: {
     // App
@@ -96,6 +112,22 @@ export const messages = {
     
     // Storage
     storageUsage: (percent: number) => `Storage ${percent}%`,
+    
+    // Auth
+    welcomeToInterectNote: 'Welcome to InterectNote',
+    loginDescription: 'Sign in to sync your notes across all devices',
+    continueWithGoogle: 'Continue with Google',
+    continueAsGuest: 'Continue as Guest',
+    syncNotice: 'Guest mode does not support cross-device sync',
+    loginError: 'Error occurred during login',
+    logout: 'Logout',
+    syncStatus: 'Sync Status',
+    syncing: 'Syncing...',
+    synced: 'Synced',
+    offline: 'Offline',
+    syncError: 'Sync Error',
+    guestUser: 'Guest User',
+    guestMode: 'Guest Mode',
   },
 };
 

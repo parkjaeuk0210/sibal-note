@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { Stage } from 'react-konva';
 import { CanvasItems } from './CanvasItems';
-import { useCanvasStore } from '../../store/canvasStore';
+import { useAppStore } from '../../contexts/StoreProvider';
 import { useNoteEditor } from '../../hooks/useNoteEditor';
 import { useViewportManager } from '../../hooks/useViewportManager';
 import { useCanvasGestures } from '../../hooks/useCanvasGestures';
@@ -16,18 +16,18 @@ export const InfiniteCanvas = React.memo(() => {
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Get store values
-  const notes = useCanvasStore((state) => state.notes);
-  const images = useCanvasStore((state) => state.images);
-  const files = useCanvasStore((state) => state.files);
-  const viewport = useCanvasStore((state) => state.viewport);
-  const setViewport = useCanvasStore((state) => state.setViewport);
-  const addNote = useCanvasStore((state) => state.addNote);
-  const selectNote = useCanvasStore((state) => state.selectNote);
-  const updateNote = useCanvasStore((state) => state.updateNote);
-  const selectedImageId = useCanvasStore((state) => state.selectedImageId);
-  const selectedFileId = useCanvasStore((state) => state.selectedFileId);
-  const selectImage = useCanvasStore((state) => state.selectImage);
-  const selectFile = useCanvasStore((state) => state.selectFile);
+  const notes = useAppStore((state) => state.notes);
+  const images = useAppStore((state) => state.images);
+  const files = useAppStore((state) => state.files);
+  const viewport = useAppStore((state) => state.viewport);
+  const setViewport = useAppStore((state) => state.setViewport);
+  const addNote = useAppStore((state) => state.addNote);
+  const selectNote = useAppStore((state) => state.selectNote);
+  const updateNote = useAppStore((state) => state.updateNote);
+  const selectedImageId = useAppStore((state) => state.selectedImageId);
+  const selectedFileId = useAppStore((state) => state.selectedFileId);
+  const selectImage = useAppStore((state) => state.selectImage);
+  const selectFile = useAppStore((state) => state.selectFile);
   
   // Device optimizations
   const performanceMode = useMemo(() => getPerformanceMode(), []);

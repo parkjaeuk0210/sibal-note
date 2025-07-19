@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Note, NoteColor, Viewport, CanvasImage, CanvasFile } from '../types';
 
-interface CanvasStore {
+export interface CanvasStore {
   notes: Note[];
   images: CanvasImage[];
   files: CanvasFile[];

@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useMemo } from 'react';
 import { Group } from 'react-konva';
 import Konva from 'konva';
 import { Note } from '../../types';
-import { useCanvasStore } from '../../store/canvasStore';
+import { useAppStore } from '../../contexts/StoreProvider';
 import { ResizeHandles } from './ResizeHandles';
 import { NoteBackground } from './components/NoteBackground';
 import { NoteContent } from './components/NoteContent';
@@ -28,10 +28,10 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
   // Get performance mode
   const performanceMode = useMemo(() => getPerformanceMode(), []);
   
-  const updateNote = useCanvasStore((state) => state.updateNote);
-  const selectNote = useCanvasStore((state) => state.selectNote);
-  const isSelected = useCanvasStore((state) => state.selectedNoteId === note.id);
-  const isDarkMode = useCanvasStore((state) => state.isDarkMode);
+  const updateNote = useAppStore((state) => state.updateNote);
+  const selectNote = useAppStore((state) => state.selectNote);
+  const isSelected = useAppStore((state) => state.selectedNoteId === note.id);
+  const isDarkMode = useAppStore((state) => state.isDarkMode);
   
   const colors = useMemo(
     () => isDarkMode ? NOTE_COLORS_DARK[note.color] : NOTE_COLORS[note.color], 

@@ -11,21 +11,43 @@ import { CanvasErrorBoundary } from './components/CanvasErrorBoundary';
 import { LoginModal } from './components/Auth/LoginModal';
 import { UserProfile } from './components/Auth/UserProfile';
 import { useAuth } from './contexts/AuthContext';
-import { auth } from './lib/firebase';
+import { useAppStore } from './contexts/StoreProvider';
 import './styles/glassmorphism.css';
 import './styles/dark-mode.css';
 
 function App() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const undo = useAppStore((state) => state.undo);
+  const redo = useAppStore((state) => state.redo);
 
+  // Keyboard shortcuts for undo/redo
   useEffect(() => {
-    // Show login modal if user is not logged in after loading
-    // Only show if Firebase is configured
-    if (!loading && !user && auth) {
-      setShowLoginModal(true);
-    }
-  }, [loading, user]);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Check if user is typing in an input or textarea
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      // Ctrl+Z for undo
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      }
+      // Ctrl+Y or Ctrl+Shift+Z for redo
+      else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        redo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo, redo]);
+
+  // Removed automatic login modal - users can now use the app freely
+  // and sign in when they want using the Sign In button
 
   return (
     <ErrorBoundary>

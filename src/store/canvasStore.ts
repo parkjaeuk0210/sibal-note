@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { undoable } from './middleware/undoable';
 import { Note, NoteColor, Viewport, CanvasImage, CanvasFile } from '../types';
 
 export interface CanvasStore {
@@ -32,13 +33,17 @@ export interface CanvasStore {
   clearCanvas: () => void;
   toggleDarkMode: () => void;
   setDarkMode: (isDark: boolean) => void;
+  
+  undo: () => void;
+  redo: () => void;
 }
 
 const defaultColors: NoteColor[] = ['yellow', 'pink', 'blue', 'green', 'purple', 'orange'];
 
 export const useCanvasStore = create<CanvasStore>()(
   persist(
-    (set) => ({
+    undoable(
+      (set) => ({
       notes: [],
       images: [],
       files: [],
@@ -219,7 +224,16 @@ export const useCanvasStore = create<CanvasStore>()(
       setDarkMode: (isDark) => {
         set({ isDarkMode: isDark });
       },
-    }),
+      }),
+      {
+        trackedActions: [
+          'addNote', 'updateNote', 'deleteNote',
+          'addImage', 'updateImage', 'deleteImage', 
+          'addFile', 'updateFile', 'deleteFile',
+          'clearCanvas'
+        ]
+      }
+    ),
     {
       name: 'interectnote-storage',
     }

@@ -19,11 +19,12 @@ export const HelpTooltip = () => {
   if (!showHelp) return null;
 
   return (
-    <div className="fixed top-6 left-1/2 transform -translate-x-1/2 max-w-sm z-50 animate-in fade-in slide-in-from-top-2 duration-500">
-      <div className="enterprise-note enterprise-note-blue rounded-2xl p-6 shadow-xl">
+    <div className="fixed top-6 left-1/2 transform -translate-x-1/2 max-w-sm z-[9999] animate-in fade-in slide-in-from-top-2 duration-500" style={{ pointerEvents: 'auto' }}>
+      <div className="enterprise-note enterprise-note-blue rounded-2xl p-6 shadow-xl relative" style={{ pointerEvents: 'auto' }}>
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 note-action-button"
+          className="absolute top-4 right-4 note-action-button z-10 cursor-pointer"
+          style={{ pointerEvents: 'auto' }}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

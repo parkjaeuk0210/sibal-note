@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { undoable } from './middleware/undoable';
 import { 
   saveNote as saveNoteToFirebase,
   updateNote as updateNoteInFirebase,
@@ -59,6 +60,10 @@ export interface FirebaseCanvasStore {
   // Firebase sync
   initializeFirebaseSync: (userId: string) => void;
   cleanupFirebaseSync: () => void;
+  
+  // Undo/Redo
+  undo: () => void;
+  redo: () => void;
 }
 
 const defaultColors: NoteColor[] = ['yellow', 'pink', 'blue', 'green', 'purple', 'orange'];
@@ -105,7 +110,9 @@ const firebaseFileToLocal = (firebaseFile: FirebaseFile): CanvasFile => ({
   createdAt: new Date(firebaseFile.createdAt),
 });
 
-export const useFirebaseCanvasStore = create<FirebaseCanvasStore>((set, get) => ({
+export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
+  undoable(
+    (set, get) => ({
   // Initial state
   notes: [],
   images: [],
@@ -454,4 +461,14 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>((set, get) => 
     unsubscribers.forEach(unsubscribe => unsubscribe());
     set({ unsubscribers: [] });
   },
-}));
+    }),
+    {
+      trackedActions: [
+        'addNote', 'updateNote', 'deleteNote',
+        'addImage', 'updateImage', 'deleteImage', 
+        'addFile', 'updateFile', 'deleteFile',
+        'clearCanvas'
+      ]
+    }
+  )
+);

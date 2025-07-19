@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { useAppStore } from '../../contexts/StoreProvider';
+import { useHistoryStore } from '../../store/historyStore';
 import { ColorPicker } from './ColorPicker';
 import { FileType } from '../../types';
 import { compressImage, getDataUrlSize, formatBytes } from '../../utils/imageCompression';
@@ -20,6 +21,10 @@ export const Toolbar = () => {
   const addFile = useAppStore((state) => state.addFile);
   const images = useAppStore((state) => state.images);
   const files = useAppStore((state) => state.files);
+  const undo = useAppStore((state) => state.undo);
+  const redo = useAppStore((state) => state.redo);
+  const canUndo = useHistoryStore((state) => state.canUndo());
+  const canRedo = useHistoryStore((state) => state.canRedo());
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const selectedNote = notes.find(n => n.id === selectedNoteId);
@@ -177,6 +182,36 @@ export const Toolbar = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
         </button>
+
+        <div className="w-px h-6 bg-gray-300" />
+        
+        <button
+          onClick={undo}
+          disabled={!canUndo}
+          className={`glass-button rounded-full p-3 transition-transform ${
+            canUndo ? 'hover:scale-105' : 'opacity-50 cursor-not-allowed'
+          }`}
+          title="실행 취소 (Ctrl+Z)"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+          </svg>
+        </button>
+        
+        <button
+          onClick={redo}
+          disabled={!canRedo}
+          className={`glass-button rounded-full p-3 transition-transform ${
+            canRedo ? 'hover:scale-105' : 'opacity-50 cursor-not-allowed'
+          }`}
+          title="다시 실행 (Ctrl+Y)"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" />
+          </svg>
+        </button>
+
+        <div className="w-px h-6 bg-gray-300" />
 
         <div className="text-sm text-gray-600">
           {Math.round(viewport.scale * 100)}%

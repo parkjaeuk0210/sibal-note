@@ -1,20 +1,21 @@
-import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
-import { Stage, Layer } from 'react-konva';
-import { useGesture } from '@use-gesture/react';
-import { EnterpriseNote } from '../Note/EnterpriseNote';
-import { CanvasImage } from './CanvasImage';
-import { CanvasFile } from './CanvasFile';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
+import { Stage } from 'react-konva';
+import { CanvasItems } from './CanvasItems';
 import { useCanvasStore } from '../../store/canvasStore';
 import { useNoteEditor } from '../../hooks/useNoteEditor';
-import Konva from 'konva';
-import { getPerformanceMode, isMobile, isTouch } from '../../utils/device';
+import { useViewportManager } from '../../hooks/useViewportManager';
+import { useCanvasGestures } from '../../hooks/useCanvasGestures';
+import { useWindowResize } from '../../hooks/useWindowResize';
+import { useCanvasHandlers } from '../../hooks/useCanvasHandlers';
 import { useMobileOptimizations } from '../../hooks/useMobileOptimizations';
+import Konva from 'konva';
+import { getPerformanceMode } from '../../utils/device';
 
 export const InfiniteCanvas = React.memo(() => {
   const stageRef = useRef<Konva.Stage>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
   
+  // Get store values
   const notes = useCanvasStore((state) => state.notes);
   const images = useCanvasStore((state) => state.images);
   const files = useCanvasStore((state) => state.files);
@@ -30,17 +31,12 @@ export const InfiniteCanvas = React.memo(() => {
   
   // Device optimizations
   const performanceMode = useMemo(() => getPerformanceMode(), []);
-  const isMobileDevice = useMemo(() => isMobile(), []);
-  const isTouchDevice = useMemo(() => isTouch(), []);
   
   // Apply mobile optimizations
   useMobileOptimizations();
   
-  // RAF for smooth viewport updates
-  const rafId = useRef<number | null>(null);
-  const pendingViewport = useRef<typeof viewport | null>(null);
-  const lastUpdateTime = useRef<number>(0);
-  const updateThrottle = performanceMode === 'low' ? 32 : 16; // 30fps vs 60fps
+  // Window dimensions
+  const dimensions = useWindowResize();
   
   // Check if any note is currently being resized or dragged
   const [isAnyNoteResizing, setIsAnyNoteResizing] = useState(false);
@@ -62,213 +58,54 @@ export const InfiniteCanvas = React.memo(() => {
       startEditing();
     }
   }, [editingNoteId, editingNote, isEditing, startEditing]);
-
-  // Handle window resize
-  useEffect(() => {
-    const handleResize = () => {
-      setDimensions({ width: window.innerWidth, height: window.innerHeight });
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // State to track if we're dragging the canvas
+  
+  // Temporary canvas dragging state
   const [isCanvasDragging, setIsCanvasDragging] = useState(false);
+  
+  // Viewport manager
+  const { updateViewportRAF, cleanup } = useViewportManager({
+    setViewport,
+    isCanvasDragging,
+  });
+  
+  // Canvas gestures
+  const canvasGestures = useCanvasGestures({
+    containerRef,
+    stageRef,
+    viewport,
+    setViewport,
+    updateViewportRAF,
+    isAnyNoteResizing,
+    isAnyNoteDragging,
+  });
+  
+  // Update canvas dragging state
+  useEffect(() => {
+    setIsCanvasDragging(canvasGestures.isCanvasDragging);
+  }, [canvasGestures.isCanvasDragging]);
   
   // Prevent canvas drag when notes are interacted with
   useEffect(() => {
     if (isAnyNoteDragging || isAnyNoteResizing) {
-      setIsCanvasDragging(false);
+      canvasGestures.setIsCanvasDragging(false);
     }
-  }, [isAnyNoteDragging, isAnyNoteResizing]);
-
-  // Optimized viewport update
-  const updateViewportRAF = useCallback((newViewport: typeof viewport) => {
-    // Direct update for canvas dragging (no throttling)
-    if (isCanvasDragging) {
-      setViewport(newViewport);
-      return;
-    }
-    
-    // Throttled updates for other interactions on mobile
-    const now = Date.now();
-    const timeSinceLastUpdate = now - lastUpdateTime.current;
-    
-    if (performanceMode === 'low' && timeSinceLastUpdate < updateThrottle) {
-      pendingViewport.current = newViewport;
-      
-      if (!rafId.current) {
-        rafId.current = requestAnimationFrame(() => {
-          const elapsed = Date.now() - lastUpdateTime.current;
-          if (elapsed >= updateThrottle && pendingViewport.current) {
-            setViewport(pendingViewport.current);
-            lastUpdateTime.current = Date.now();
-            pendingViewport.current = null;
-          }
-          rafId.current = null;
-        });
-      }
-      return;
-    }
-    
-    // Normal RAF update
-    pendingViewport.current = newViewport;
-    
-    if (rafId.current) {
-      cancelAnimationFrame(rafId.current);
-    }
-    
-    rafId.current = requestAnimationFrame(() => {
-      if (pendingViewport.current) {
-        setViewport(pendingViewport.current);
-        lastUpdateTime.current = now;
-        pendingViewport.current = null;
-      }
-      rafId.current = null;
-    });
-  }, [setViewport, performanceMode, updateThrottle, isCanvasDragging]);
-
+  }, [isAnyNoteDragging, isAnyNoteResizing, canvasGestures]);
+  
   // Cleanup RAF on unmount
   useEffect(() => {
-    return () => {
-      if (rafId.current) {
-        cancelAnimationFrame(rafId.current);
-      }
-    };
-  }, []);
+    return cleanup;
+  }, [cleanup]);
 
-  // Pan and zoom gestures
-  useGesture(
-    {
-      onWheel: ({ delta: [, dy], event }) => {
-        if (isMobileDevice) return; // Disable wheel zoom on mobile
-        
-        // Prevent default to avoid bounce on Mac
-        event.preventDefault();
-        
-        const stage = stageRef.current;
-        if (!stage) return;
-
-        const oldScale = viewport.scale;
-        const pointer = stage.getPointerPosition();
-        if (!pointer) return;
-
-        const mousePointTo = {
-          x: (pointer.x - viewport.x) / oldScale,
-          y: (pointer.y - viewport.y) / oldScale,
-        };
-
-        const newScale = Math.min(Math.max(0.1, oldScale - dy * 0.001), 5);
-        
-        updateViewportRAF({
-          scale: newScale,
-          x: pointer.x - mousePointTo.x * newScale,
-          y: pointer.y - mousePointTo.y * newScale,
-        });
-      },
-      onDragStart: ({ event }) => {
-        // Don't start canvas drag if any note is being resized or dragged
-        if (isAnyNoteResizing || isAnyNoteDragging) return;
-        
-        // Check if clicking on canvas (not on a note)
-        const target = event.target as HTMLElement;
-        if (target.tagName === 'CANVAS') {
-          const stage = stageRef.current;
-          if (stage) {
-            const pos = stage.getPointerPosition();
-            if (pos) {
-              const shape = stage.getIntersection(pos);
-              // Only start canvas drag if we're definitely not on a shape
-              if (!shape) {
-                setIsCanvasDragging(true);
-              }
-            }
-          }
-        }
-      },
-      onDrag: ({ delta: [dx, dy], pinching, event }) => {
-        if (pinching || !isCanvasDragging || isAnyNoteResizing || isAnyNoteDragging) return;
-        
-        // Double check we're still dragging the canvas
-        const target = event.target as HTMLElement;
-        if (target.tagName !== 'CANVAS') {
-          setIsCanvasDragging(false);
-          return;
-        }
-        
-        // Direct update for smoother canvas drag
-        setViewport({
-          ...viewport,
-          x: viewport.x + dx,
-          y: viewport.y + dy,
-        });
-      },
-      onDragEnd: () => {
-        setIsCanvasDragging(false);
-      },
-      onPinch: ({ offset: [d], origin: [ox, oy] }) => {
-        const newScale = Math.min(Math.max(0.1, d / 200), 5);
-        const stage = stageRef.current;
-        if (!stage) return;
-
-        const pointer = { x: ox, y: oy };
-        const mousePointTo = {
-          x: (pointer.x - viewport.x) / viewport.scale,
-          y: (pointer.y - viewport.y) / viewport.scale,
-        };
-
-        updateViewportRAF({
-          scale: newScale,
-          x: pointer.x - mousePointTo.x * newScale,
-          y: pointer.y - mousePointTo.y * newScale,
-        });
-      },
-    },
-    {
-      target: containerRef,
-      drag: { 
-        filterTaps: true,
-        from: () => [viewport.x, viewport.y],
-        enabled: !isAnyNoteResizing && !isAnyNoteDragging,
-        threshold: isMobileDevice ? 10 : 5,
-      },
-      pinch: { from: () => [viewport.scale * 200, 0] },
-      eventOptions: {
-        passive: !isTouchDevice, // iOS has issues with passive listeners
-      },
-    }
-  );
-
-  const handleStageClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
-    const target = e.target;
-    
-    // If clicking on stage (not on a note)
-    if (target === stageRef.current || target.parent?.className === 'Layer') {
-      selectNote(null);
-      selectImage(null);
-      selectFile(null);
-      // Also ensure canvas dragging is stopped
-      setIsCanvasDragging(false);
-    }
-  }, [selectNote, selectImage, selectFile]);
-
-  const handleStageDoubleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
-    // Only add note if clicking on stage itself
-    if (e.target !== e.currentTarget) return;
-    
-    const stage = stageRef.current;
-    if (!stage) return;
-
-    const pointer = stage.getPointerPosition();
-    if (!pointer) return;
-
-    // Convert screen coordinates to canvas coordinates
-    const x = (pointer.x - viewport.x) / viewport.scale;
-    const y = (pointer.y - viewport.y) / viewport.scale;
-
-    addNote(x, y);
-  }, [viewport.x, viewport.y, viewport.scale, addNote]);
+  // Canvas click handlers
+  const { handleStageClick, handleStageDoubleClick } = useCanvasHandlers({
+    stageRef,
+    viewport,
+    selectNote,
+    selectImage,
+    selectFile,
+    addNote,
+    setIsCanvasDragging: canvasGestures.setIsCanvasDragging,
+  });
 
   return (
     <div ref={containerRef} className="w-full h-full" style={{ 
@@ -292,52 +129,19 @@ export const InfiniteCanvas = React.memo(() => {
         perfectDrawEnabled={performanceMode === 'high'}
         pixelRatio={performanceMode === 'low' ? 1 : window.devicePixelRatio}
       >
-        <Layer>
-          {/* Render images */}
-          {images.map((image) => (
-            <CanvasImage
-              key={image.id}
-              image={image}
-              isSelected={selectedImageId === image.id}
-              onSelect={() => selectImage(image.id)}
-              onResizingChange={(isResizing) => {
-                setIsAnyNoteResizing(isResizing);
-              }}
-              onDraggingChange={(isDragging) => {
-                setIsAnyNoteDragging(isDragging);
-              }}
-            />
-          ))}
-          
-          {/* Render files */}
-          {files.map((file) => (
-            <CanvasFile
-              key={file.id}
-              file={file}
-              isSelected={selectedFileId === file.id}
-              onSelect={() => selectFile(file.id)}
-              onDraggingChange={(isDragging) => {
-                setIsAnyNoteDragging(isDragging);
-              }}
-            />
-          ))}
-          
-          {/* Render notes */}
-          {notes.map((note) => (
-            <EnterpriseNote 
-              key={note.id} 
-              note={note} 
-              isEditing={editingNoteId === note.id}
-              onStartEditing={() => setEditingNoteId(note.id)}
-              onResizingChange={(isResizing) => {
-                setIsAnyNoteResizing(isResizing);
-              }}
-              onDraggingChange={(isDragging) => {
-                setIsAnyNoteDragging(isDragging);
-              }}
-            />
-          ))}
-        </Layer>
+        <CanvasItems
+          notes={notes}
+          images={images}
+          files={files}
+          editingNoteId={editingNoteId}
+          selectedImageId={selectedImageId}
+          selectedFileId={selectedFileId}
+          selectImage={selectImage}
+          selectFile={selectFile}
+          setEditingNoteId={setEditingNoteId}
+          setIsAnyNoteResizing={setIsAnyNoteResizing}
+          setIsAnyNoteDragging={setIsAnyNoteDragging}
+        />
       </Stage>
       {EditorComponent}
     </div>

@@ -11,6 +11,7 @@ import { CanvasErrorBoundary } from './components/CanvasErrorBoundary';
 import { LoginModal } from './components/Auth/LoginModal';
 import { UserProfile } from './components/Auth/UserProfile';
 import { useAuth } from './contexts/AuthContext';
+import { auth } from './lib/firebase';
 import './styles/glassmorphism.css';
 import './styles/dark-mode.css';
 
@@ -20,7 +21,8 @@ function App() {
 
   useEffect(() => {
     // Show login modal if user is not logged in after loading
-    if (!loading && !user) {
+    // Only show if Firebase is configured
+    if (!loading && !user && auth) {
       setShowLoginModal(true);
     }
   }, [loading, user]);

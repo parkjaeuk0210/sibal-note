@@ -12,7 +12,10 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, loading, error] = useAuthState(auth);
+  // If Firebase is not configured, provide default values
+  const [user, loading, error] = auth 
+    ? useAuthState(auth)
+    : [null, false, undefined];
 
   return (
     <AuthContext.Provider value={{ user, loading, error }}>

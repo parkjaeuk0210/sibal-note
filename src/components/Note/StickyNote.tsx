@@ -3,6 +3,8 @@ import { Group, Rect, Text } from 'react-konva';
 import Konva from 'konva';
 import { Note } from '../../types';
 import { useAppStore } from '../../contexts/StoreProvider';
+import { ClickableText } from './components/ClickableText';
+import { parseTextWithURLs } from '../../utils/urlDetection';
 
 interface StickyNoteProps {
   note: Note;
@@ -149,20 +151,42 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
         strokeWidth={2}
         cornerRadius={8}
       />
-      {!isEditing && (
-        <Text
-          x={10}
-          y={10}
-          width={note.width - 20}
-          height={note.height - 20}
-          text={note.content || '더블 클릭하여 메모 작성'}
-          fontSize={16}
-          fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-          fill={note.content ? '#1F2937' : '#9CA3AF'}
-          wrap="word"
-          lineHeight={1.5}
-        />
-      )}
+      {!isEditing && (() => {
+        const content = note.content || '더블 클릭하여 메모 작성';
+        const segments = parseTextWithURLs(content);
+        const hasUrls = segments.some(segment => segment.type === 'url');
+        const isDarkMode = false; // StickyNote는 기본적으로 밝은 색상 사용
+        
+        if (hasUrls && note.content) {
+          return (
+            <ClickableText
+              content={content}
+              x={10}
+              y={10}
+              width={note.width - 20}
+              height={note.height - 20}
+              isDarkMode={isDarkMode}
+              fontSize={16}
+              fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+            />
+          );
+        }
+        
+        return (
+          <Text
+            x={10}
+            y={10}
+            width={note.width - 20}
+            height={note.height - 20}
+            text={content}
+            fontSize={16}
+            fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+            fill={note.content ? '#1F2937' : '#9CA3AF'}
+            wrap="word"
+            lineHeight={1.5}
+          />
+        );
+      })()}
     </Group>
   );
 };

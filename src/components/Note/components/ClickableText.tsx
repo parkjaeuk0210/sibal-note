@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useRef, useEffect, useMemo } from 'react';
-import { Text, Group } from 'react-konva';
+import { Text, Group, Rect } from 'react-konva';
 import { FONT_SIZE, LINE_HEIGHT } from '../../../constants/colors';
 import { parseTextWithURLs } from '../../../utils/urlDetection';
 import Konva from 'konva';
@@ -13,14 +13,7 @@ interface ClickableTextProps {
   isDarkMode: boolean;
   fontSize?: number;
   fontFamily?: string;
-}
-
-interface URLRegion {
-  url: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+  onLinkClick?: (url: string) => void;
 }
 
 export const ClickableText: React.FC<ClickableTextProps> = ({
@@ -31,114 +24,143 @@ export const ClickableText: React.FC<ClickableTextProps> = ({
   height,
   isDarkMode,
   fontSize = FONT_SIZE,
-  fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif"
+  fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif",
+  onLinkClick
 }) => {
   const textColor = isDarkMode ? "rgba(255, 255, 255, 0.9)" : "rgba(0, 0, 0, 0.85)";
+  const linkColor = isDarkMode ? "#60A5FA" : "#2563EB";
+  const linkHoverColor = isDarkMode ? "#93C5FD" : "#1D4ED8";
   
-  const [urlRegions, setUrlRegions] = useState<URLRegion[]>([]);
-  const textRef = useRef<Konva.Text>(null);
+  const [hoveredSegmentIndex, setHoveredSegmentIndex] = useState<number | null>(null);
+  const groupRef = useRef<Konva.Group>(null);
   
-  const handleLinkClick = useCallback((url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  }, []);
+  const handleLinkClick = useCallback((url: string, e?: any) => {
+    if (e) {
+      e.cancelBubble = true; // 이벤트 버블링 중단
+    }
+    if (onLinkClick) {
+      onLinkClick(url);
+    } else {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  }, [onLinkClick]);
   
-  // segments를 useMemo로 메모이제이션하여 무한 루프 방지
-  const { segments, fullText } = useMemo(() => {
-    const segs = parseTextWithURLs(content);
-    const text = segs.map(s => s.content).join('');
-    return { segments: segs, fullText: text };
+  // segments를 useMemo로 메모이제이션
+  const segments = useMemo(() => {
+    return parseTextWithURLs(content);
   }, [content]);
   
-  // URL 영역 계산
-  useEffect(() => {
-    const regions: URLRegion[] = [];
-    let currentIndex = 0;
+  // 각 세그먼트를 개별적으로 렌더링
+  const renderSegments = () => {
+    const elements: React.ReactElement[] = [];
+    let currentX = 0;
+    let currentY = 0;
+    let currentLineWidth = 0;
+    const lineHeightPx = fontSize * LINE_HEIGHT;
+    const spaceWidth = fontSize * 0.3; // 공백 문자 너비 근사치
     
-    segments.forEach(segment => {
-      if (segment.type === 'url' && segment.url) {
-        // 간단한 계산 - 실제로는 더 정교한 텍스트 측정 필요
-        const startX = (currentIndex * fontSize * 0.6) % width;
-        const startY = Math.floor((currentIndex * fontSize * 0.6) / width) * fontSize * LINE_HEIGHT;
+    segments.forEach((segment, index) => {
+      const isUrl = segment.type === 'url';
+      const words = segment.content.split(' ');
+      
+      words.forEach((word, wordIndex) => {
+        if (wordIndex > 0) {
+          // 단어 사이 공백 추가
+          currentLineWidth += spaceWidth;
+          if (currentLineWidth > width) {
+            currentX = 0;
+            currentY += lineHeightPx;
+            currentLineWidth = 0;
+          } else {
+            currentX += spaceWidth;
+          }
+        }
         
-        regions.push({
-          url: segment.url,
-          x: startX,
-          y: startY,
-          width: segment.content.length * fontSize * 0.6,
-          height: fontSize * LINE_HEIGHT
-        });
+        // 단어 너비 계산 (근사치)
+        const wordWidth = word.length * fontSize * 0.6;
+        
+        // 줄바꿈 필요 여부 확인
+        if (currentLineWidth + wordWidth > width && currentLineWidth > 0) {
+          currentX = 0;
+          currentY += lineHeightPx;
+          currentLineWidth = wordWidth;
+        } else {
+          currentLineWidth += wordWidth;
+        }
+        
+        const isHovered = hoveredSegmentIndex === index && isUrl;
+        
+        elements.push(
+          <Text
+            key={`${index}-${wordIndex}`}
+            x={x + currentX}
+            y={y + currentY}
+            text={word}
+            fontSize={fontSize}
+            fontFamily={fontFamily}
+            fill={isUrl ? (isHovered ? linkHoverColor : linkColor) : textColor}
+            textDecoration={isUrl ? 'underline' : undefined}
+            onClick={isUrl && segment.url ? (e) => {
+              e.cancelBubble = true;
+              handleLinkClick(segment.url!, e);
+            } : undefined}
+            onTap={isUrl && segment.url ? (e) => {
+              e.cancelBubble = true;
+              handleLinkClick(segment.url!, e);
+            } : undefined}
+            onMouseEnter={isUrl ? (e) => {
+              setHoveredSegmentIndex(index);
+              const stage = e.target.getStage();
+              if (stage) {
+                stage.container().style.cursor = 'pointer';
+              }
+            } : undefined}
+            onMouseLeave={isUrl ? (e) => {
+              setHoveredSegmentIndex(null);
+              const stage = e.target.getStage();
+              if (stage) {
+                stage.container().style.cursor = 'default';
+              }
+            } : undefined}
+          />
+        );
+        
+        currentX += wordWidth;
+      });
+      
+      // 세그먼트 사이에 공백 추가 (URL 뒤에 공백이 있는 경우)
+      if (index < segments.length - 1) {
+        currentLineWidth += spaceWidth;
+        if (currentLineWidth > width) {
+          currentX = 0;
+          currentY += lineHeightPx;
+          currentLineWidth = 0;
+        } else {
+          currentX += spaceWidth;
+        }
       }
-      currentIndex += segment.content.length;
     });
     
-    setUrlRegions(regions);
-  }, [segments, fontSize, width]);
+    return elements;
+  };
   
-  const handleClick = useCallback((e: any) => {
-    const pos = e.target.getRelativePointerPosition();
-    if (!pos) return;
-    
-    // 클릭한 위치가 URL 영역인지 확인
-    for (const region of urlRegions) {
-      if (
-        pos.x >= region.x &&
-        pos.x <= region.x + region.width &&
-        pos.y >= region.y &&
-        pos.y <= region.y + region.height
-      ) {
-        handleLinkClick(region.url);
-        break;
-      }
-    }
-  }, [urlRegions, handleLinkClick]);
+  // 디버그용: 클릭 가능한 영역 표시 (개발 중에만 사용)
+  const debugMode = false;
   
-  // 실제로는 개별 세그먼트 렌더링이 이상적이지만,
-  // Konva의 텍스트 래핑 문제로 인해 단일 텍스트로 렌더링
   return (
-    <Group>
-      <Text
-        ref={textRef}
-        x={x}
-        y={y}
-        width={width}
-        height={height}
-        text={fullText}
-        fontSize={fontSize}
-        fontFamily={fontFamily}
-        fill={textColor}
-        wrap="word"
-        lineHeight={LINE_HEIGHT}
-        onClick={handleClick}
-        onTap={handleClick}
-        onMouseMove={(e) => {
-          const pos = e.target.getRelativePointerPosition();
-          if (!pos) return;
-          
-          let isOverUrl = false;
-          for (const region of urlRegions) {
-            if (
-              pos.x >= region.x &&
-              pos.x <= region.x + region.width &&
-              pos.y >= region.y &&
-              pos.y <= region.y + region.height
-            ) {
-              isOverUrl = true;
-              break;
-            }
-          }
-          
-          const stage = e.target.getStage();
-          if (stage) {
-            stage.container().style.cursor = isOverUrl ? 'pointer' : 'text';
-          }
-        }}
-        onMouseLeave={(e) => {
-          const stage = e.target.getStage();
-          if (stage) {
-            stage.container().style.cursor = 'default';
-          }
-        }}
-      />
+    <Group ref={groupRef}>
+      {debugMode && (
+        <Rect
+          x={x}
+          y={y}
+          width={width}
+          height={height}
+          stroke="red"
+          strokeWidth={1}
+          fill="transparent"
+        />
+      )}
+      {renderSegments()}
     </Group>
   );
 };

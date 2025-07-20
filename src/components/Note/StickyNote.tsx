@@ -63,7 +63,9 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
     });
   };
 
-  const handleClick = () => {
+  const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    // 이벤트가 이미 처리되었으면 무시
+    if (e.evt.defaultPrevented) return;
     selectNote(note.id);
   };
 
@@ -168,6 +170,10 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
               isDarkMode={isDarkMode}
               fontSize={16}
               fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+              onLinkClick={(url) => {
+                // 링크 클릭시 노트 선택 방지
+                window.open(url, '_blank', 'noopener,noreferrer');
+              }}
             />
           );
         }

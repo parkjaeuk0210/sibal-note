@@ -14,6 +14,7 @@ interface ClickableTextProps {
   fontSize?: number;
   fontFamily?: string;
   onLinkClick?: (url: string) => void;
+  debugMode?: boolean;
 }
 
 export const ClickableText: React.FC<ClickableTextProps> = ({
@@ -25,7 +26,8 @@ export const ClickableText: React.FC<ClickableTextProps> = ({
   isDarkMode,
   fontSize = FONT_SIZE,
   fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif",
-  onLinkClick
+  onLinkClick,
+  debugMode = false
 }) => {
   const textColor = isDarkMode ? "rgba(255, 255, 255, 0.9)" : "rgba(0, 0, 0, 0.85)";
   const linkColor = isDarkMode ? "#60A5FA" : "#2563EB";
@@ -76,7 +78,77 @@ export const ClickableText: React.FC<ClickableTextProps> = ({
           }
         }
         
-        // 단어 너비 계산 (근사치)
+        // URL인 경우 특별 처리
+        if (isUrl && word.length * fontSize * 0.6 > width) {
+          // 긴 URL을 문자 단위로 분할
+          let urlChars = word;
+          let charIndex = 0;
+          
+          while (charIndex < urlChars.length) {
+            let lineChars = '';
+            let lineWidth = currentLineWidth;
+            
+            // 현재 줄에 들어갈 수 있는 만큼의 문자 추가
+            while (charIndex < urlChars.length && lineWidth + fontSize * 0.6 <= width) {
+              lineChars += urlChars[charIndex];
+              lineWidth += fontSize * 0.6;
+              charIndex++;
+            }
+            
+            if (lineChars.length > 0) {
+              const isHovered = hoveredSegmentIndex === index && isUrl;
+              
+              elements.push(
+                <Text
+                  key={`${index}-${wordIndex}-${elements.length}`}
+                  x={x + currentX}
+                  y={y + currentY}
+                  text={lineChars}
+                  fontSize={fontSize}
+                  fontFamily={fontFamily}
+                  fill={isUrl ? (isHovered ? linkHoverColor : linkColor) : textColor}
+                  textDecoration={isUrl ? 'underline' : undefined}
+                  onClick={isUrl && segment.url ? (e) => {
+                    e.cancelBubble = true;
+                    handleLinkClick(segment.url!, e);
+                  } : undefined}
+                  onTap={isUrl && segment.url ? (e) => {
+                    e.cancelBubble = true;
+                    handleLinkClick(segment.url!, e);
+                  } : undefined}
+                  onMouseEnter={isUrl ? (e) => {
+                    setHoveredSegmentIndex(index);
+                    const stage = e.target.getStage();
+                    if (stage) {
+                      stage.container().style.cursor = 'pointer';
+                    }
+                  } : undefined}
+                  onMouseLeave={isUrl ? (e) => {
+                    setHoveredSegmentIndex(null);
+                    const stage = e.target.getStage();
+                    if (stage) {
+                      stage.container().style.cursor = 'default';
+                    }
+                  } : undefined}
+                />
+              );
+              
+              currentX += lineChars.length * fontSize * 0.6;
+              currentLineWidth = currentX;
+            }
+            
+            // 더 많은 문자가 있으면 줄바꿈
+            if (charIndex < urlChars.length) {
+              currentX = 0;
+              currentY += lineHeightPx;
+              currentLineWidth = 0;
+            }
+          }
+          
+          return; // 긴 URL 처리 완료
+        }
+        
+        // 일반 단어 처리
         const wordWidth = word.length * fontSize * 0.6;
         
         // 줄바꿈 필요 여부 확인
@@ -144,21 +216,35 @@ export const ClickableText: React.FC<ClickableTextProps> = ({
     return elements;
   };
   
-  // 디버그용: 클릭 가능한 영역 표시 (개발 중에만 사용)
-  const debugMode = false;
-  
   return (
-    <Group ref={groupRef}>
+    <Group 
+      ref={groupRef}
+      clip={{
+        x: x,
+        y: y,
+        width: width,
+        height: height
+      }}
+    >
       {debugMode && (
-        <Rect
-          x={x}
-          y={y}
-          width={width}
-          height={height}
-          stroke="red"
-          strokeWidth={1}
-          fill="transparent"
-        />
+        <>
+          <Rect
+            x={x}
+            y={y}
+            width={width}
+            height={height}
+            stroke="red"
+            strokeWidth={2}
+            fill="transparent"
+          />
+          <Text
+            x={x + 2}
+            y={y + 2}
+            text={`${width}x${height}`}
+            fontSize={10}
+            fill="red"
+          />
+        </>
       )}
       {renderSegments()}
     </Group>

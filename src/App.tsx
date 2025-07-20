@@ -4,7 +4,6 @@ import { Toolbar } from './components/UI/Toolbar';
 import { FloatingButton } from './components/UI/FloatingButton';
 import { HelpTooltip } from './components/UI/HelpTooltip';
 import { DarkModeToggle } from './components/UI/DarkModeToggle';
-import { LanguageToggle } from './components/UI/LanguageToggle';
 import { SyncStatus } from './components/UI/SyncStatus';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CanvasErrorBoundary } from './components/CanvasErrorBoundary';
@@ -116,7 +115,6 @@ function App() {
                 Sign In
               </button>
             )}
-            <LanguageToggle />
             <DarkModeToggle />
           </div>
         </div>

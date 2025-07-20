@@ -1,7 +1,9 @@
-import { useRef, useMemo } from 'react';
-import { Group, Rect } from 'react-konva';
+import { useRef, useMemo, useState } from 'react';
+import { Group, Circle, Rect } from 'react-konva';
 import { Note } from '../../types';
 import { getPerformanceMode, isMobile } from '../../utils/device';
+import { useAppStore } from '../../contexts/StoreProvider';
+import { NOTE_COLORS, NOTE_COLORS_DARK } from '../../constants/colors';
 
 interface ResizeHandlesProps {
   note: Note;
@@ -31,9 +33,17 @@ export const ResizeHandles = ({
   const rafId = useRef<number | null>(null);
   const performanceMode = useMemo(() => getPerformanceMode(), []);
   const isMobileDevice = useMemo(() => isMobile(), []);
+  const isDarkMode = useAppStore((state) => state.isDarkMode);
+  const [hoveredHandle, setHoveredHandle] = useState<string | null>(null);
   
-  // Larger handle size on mobile for easier touch
-  const HANDLE_SIZE = isMobileDevice ? 16 : 10;
+  // Get colors based on note color and theme
+  const colors = useMemo(
+    () => isDarkMode ? NOTE_COLORS_DARK[note.color] : NOTE_COLORS[note.color],
+    [note.color, isDarkMode]
+  );
+  
+  // Smaller, more elegant handle size
+  const HANDLE_SIZE = isMobileDevice ? 12 : 8;
   const lastUpdateTime = useRef<number>(0);
   const updateThrottle = performanceMode === 'low' ? 32 : 16;
 
@@ -67,22 +77,91 @@ export const ResizeHandles = ({
     { name: 'left', x: 0, y: currentHeight / 2 },
   ];
 
-  return (
-    <Group>
-      {handles.map((handle) => (
-        <Rect
+  // Helper to determine if handle is a corner
+  const isCornerHandle = (handleName: string) => {
+    return ['top-left', 'top-right', 'bottom-left', 'bottom-right'].includes(handleName);
+  };
+
+  // Render glassmorphism handle
+  const renderHandle = (handle: { name: string; x: number; y: number }) => {
+    const isCorner = isCornerHandle(handle.name);
+    const isCurrentHovered = hoveredHandle === handle.name;
+    const scale = isCurrentHovered ? 1.2 : 1;
+    
+    if (isCorner) {
+      // Circular handles for corners
+      return (
+        <Group
           key={handle.name}
           x={handle.x}
           y={handle.y}
-          width={HANDLE_SIZE}
-          height={HANDLE_SIZE}
-          offsetX={HANDLE_SIZE / 2}
-          offsetY={HANDLE_SIZE / 2}
-          fill="white"
-          stroke="#3B82F6"
-          strokeWidth={2}
-          cornerRadius={2}
-          draggable
+          scaleX={scale}
+          scaleY={scale}
+        >
+          {/* Background circle with glassmorphism effect */}
+          <Circle
+            radius={HANDLE_SIZE / 2}
+            fill={isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.85)'}
+            stroke={colors.accent}
+            strokeWidth={1.5}
+            shadowColor={colors.accent}
+            shadowBlur={isCurrentHovered ? 8 : 4}
+            shadowOpacity={0.3}
+            shadowEnabled={performanceMode === 'high'}
+            opacity={isCurrentHovered ? 1 : 0.9}
+          />
+          {/* Inner accent dot */}
+          <Circle
+            radius={HANDLE_SIZE / 4}
+            fill={colors.accent}
+            opacity={0.6}
+          />
+        </Group>
+      );
+    } else {
+      // Rounded rectangle for edge handles
+      return (
+        <Group
+          key={handle.name}
+          x={handle.x}
+          y={handle.y}
+          scaleX={scale}
+          scaleY={scale}
+        >
+          <Rect
+            width={HANDLE_SIZE}
+            height={HANDLE_SIZE}
+            offsetX={HANDLE_SIZE / 2}
+            offsetY={HANDLE_SIZE / 2}
+            fill={isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.85)'}
+            stroke={colors.accent}
+            strokeWidth={1.5}
+            cornerRadius={HANDLE_SIZE / 3}
+            shadowColor={colors.accent}
+            shadowBlur={isCurrentHovered ? 8 : 4}
+            shadowOpacity={0.3}
+            shadowEnabled={performanceMode === 'high'}
+            opacity={isCurrentHovered ? 1 : 0.9}
+          />
+        </Group>
+      );
+    }
+  };
+
+  return (
+    <Group>
+      {handles.map((handle) => (
+        <Group key={handle.name}>
+          {renderHandle(handle)}
+          <Rect
+            x={handle.x}
+            y={handle.y}
+            width={HANDLE_SIZE + (isMobileDevice ? 16 : 8)}
+            height={HANDLE_SIZE + (isMobileDevice ? 16 : 8)}
+            offsetX={(HANDLE_SIZE + (isMobileDevice ? 16 : 8)) / 2}
+            offsetY={(HANDLE_SIZE + (isMobileDevice ? 16 : 8)) / 2}
+            fill="transparent"
+            draggable
           onDragStart={(e) => {
             e.cancelBubble = true;
             const stage = e.target.getStage();
@@ -301,26 +380,22 @@ export const ResizeHandles = ({
             if (stage) {
               stage.container().style.cursor = getCursor(handle.name);
             }
+            setHoveredHandle(handle.name);
           }}
           onMouseLeave={(e) => {
             const stage = e.target.getStage();
             if (stage) {
               stage.container().style.cursor = 'default';
             }
+            setHoveredHandle(null);
           }}
           onMouseDown={(e) => {
             e.cancelBubble = true;
             e.evt.stopPropagation();
             e.evt.preventDefault();
           }}
-          opacity={isMobileDevice ? 0.9 : 0.8}
-          shadowColor={performanceMode === 'high' ? "rgba(0, 0, 0, 0.2)" : "transparent"}
-          shadowBlur={performanceMode === 'high' ? 4 : 0}
-          shadowOffset={{ x: 0, y: performanceMode === 'high' ? 2 : 0 }}
-          shadowEnabled={performanceMode === 'high'}
-          // Add touch area padding for mobile
-          hitStrokeWidth={isMobileDevice ? 20 : 0}
-        />
+          />
+        </Group>
       ))}
     </Group>
   );

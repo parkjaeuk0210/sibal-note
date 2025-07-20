@@ -30,10 +30,17 @@ boundBoxFunc={(_oldBox, newBox) => {
 **Solution**: Remove unused imports
 ```typescript
 // ❌ Bad
-import React, { useState } from 'react';  // If React is not used directly
+import React, { useState, useEffect } from 'react';  // If useEffect is not used
 
 // ✅ Good
-import { useState } from 'react';
+import React, { useState } from 'react';
+
+// ❌ Bad - 자주 발생하는 오류
+import React, { useCallback, useState, useRef, useEffect, useMemo } from 'react';
+// useEffect를 실제로 사용하지 않는 경우
+
+// ✅ Good
+import React, { useCallback, useState, useRef, useMemo } from 'react';
 ```
 
 ### 3. Unused Variable Error
@@ -69,6 +76,7 @@ Add to `tsconfig.json` to customize unused variable handling:
    ```bash
    npm run build
    ```
+   **중요**: GitHub Actions에서 빌드가 실패하면 배포가 안됩니다!
 
 2. **Use ESLint for early detection**
    - Configure ESLint to catch unused variables during development
@@ -81,3 +89,22 @@ Add to `tsconfig.json` to customize unused variable handling:
 4. **Clean up imports regularly**
    - Remove unused imports to keep code clean
    - Use VS Code's "Organize Imports" feature (Shift+Alt+O)
+
+5. **커밋 전 체크리스트**
+   - [ ] `npm run build` 실행하여 오류 없음 확인
+   - [ ] 사용하지 않는 import 제거 (특히 useEffect, useState 등)
+   - [ ] 선언했지만 사용하지 않는 변수 제거
+   - [ ] TypeScript 오류 0개 확인
+
+## 자주 실수하는 패턴
+
+### useEffect import 후 제거
+```typescript
+// 처음에 useEffect 사용 계획
+import React, { useCallback, useState, useRef, useEffect, useMemo } from 'react';
+
+// 나중에 useEffect를 useMemo로 대체했지만 import를 제거하지 않음
+// 이런 경우 빌드 오류 발생!
+```
+
+**해결**: 코드 리팩토링 후 항상 import 정리하기

@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef, useEffect, useMemo } from 'react';
+import React, { useCallback, useState, useRef, useMemo } from 'react';
 import { Text, Group, Rect } from 'react-konva';
 import { FONT_SIZE, LINE_HEIGHT } from '../../../constants/colors';
 import { parseTextWithURLs } from '../../../utils/urlDetection';

@@ -198,7 +198,7 @@ export const Toolbar = () => {
             
             <button
               onClick={handleDelete}
-              className="glass-button rounded-full p-3 hover:scale-105 transition-transform text-red-500"
+              className="glass-button rounded-full p-3 hover:scale-105 transition-transform text-white"
               title="메모 삭제"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -214,7 +214,7 @@ export const Toolbar = () => {
             
             <button
               onClick={handleDelete}
-              className="glass-button rounded-full p-3 hover:scale-105 transition-transform text-red-500"
+              className="glass-button rounded-full p-3 hover:scale-105 transition-transform text-white"
               title="삭제"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -234,7 +234,7 @@ export const Toolbar = () => {
                   clearCanvas();
                 }
               }}
-              className="glass-button rounded-full p-3 hover:scale-105 transition-transform text-gray-600"
+              className="glass-button rounded-full p-3 hover:scale-105 transition-transform text-red-500"
               title="모두 지우기"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -6,6 +6,7 @@ export interface Note {
   height: number;
   content: string;
   color: NoteColor;
+  zIndex?: number;
   createdAt: Date;
   updatedAt: Date;
 }

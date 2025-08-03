@@ -62,16 +62,23 @@ export const useCanvasStore = create<CanvasStore>()(
           height: 180,
           content: '',
           color: defaultColors[Math.floor(Math.random() * defaultColors.length)],
+          zIndex: 0, // Will be updated when added
           createdAt: new Date(),
           updatedAt: new Date(),
         };
         
-        set((state) => ({
-          notes: [...state.notes, newNote],
-          selectedNoteId: newNote.id,
-          selectedImageId: null,
-          selectedFileId: null,
-        }));
+        set((state) => {
+          // Get the maximum zIndex from all notes
+          const maxZIndex = Math.max(...state.notes.map(n => n.zIndex || 0), 0);
+          newNote.zIndex = maxZIndex + 1;
+          
+          return {
+            notes: [...state.notes, newNote],
+            selectedNoteId: newNote.id,
+            selectedImageId: null,
+            selectedFileId: null,
+          };
+        });
       },
       
       updateNote: (id, updates) => {
@@ -92,7 +99,28 @@ export const useCanvasStore = create<CanvasStore>()(
       },
       
       selectNote: (id) => {
-        set({ selectedNoteId: id, selectedImageId: null, selectedFileId: null });
+        set((state) => {
+          if (id) {
+            // Get the maximum zIndex from all notes
+            const maxZIndex = Math.max(...state.notes.map(n => n.zIndex || 0), 0);
+            
+            // Update the selected note's zIndex to be on top
+            const updatedNotes = state.notes.map(note =>
+              note.id === id
+                ? { ...note, zIndex: maxZIndex + 1 }
+                : note
+            );
+            
+            return {
+              notes: updatedNotes,
+              selectedNoteId: id,
+              selectedImageId: null,
+              selectedFileId: null
+            };
+          }
+          
+          return { selectedNoteId: id, selectedImageId: null, selectedFileId: null };
+        });
       },
       
       addImage: (image) => {

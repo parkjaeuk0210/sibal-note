@@ -138,6 +138,7 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
       ref={groupRef}
       x={note.x}
       y={note.y}
+      zIndex={note.zIndex || 0}
       draggable
       onDragEnd={handleDragEnd}
       onClick={handleClick}

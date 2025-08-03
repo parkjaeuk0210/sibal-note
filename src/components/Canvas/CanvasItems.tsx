@@ -63,21 +63,23 @@ export const CanvasItems: React.FC<CanvasItemsProps> = ({
         />
       ))}
       
-      {/* Render notes */}
-      {notes.map((note) => (
-        <EnterpriseNote 
-          key={note.id} 
-          note={note} 
-          isEditing={editingNoteId === note.id}
-          onStartEditing={() => setEditingNoteId(note.id)}
-          onResizingChange={(isResizing) => {
-            setIsAnyNoteResizing(isResizing);
-          }}
-          onDraggingChange={(isDragging) => {
-            setIsAnyNoteDragging(isDragging);
-          }}
-        />
-      ))}
+      {/* Render notes sorted by zIndex */}
+      {[...notes]
+        .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0))
+        .map((note) => (
+          <EnterpriseNote 
+            key={note.id} 
+            note={note} 
+            isEditing={editingNoteId === note.id}
+            onStartEditing={() => setEditingNoteId(note.id)}
+            onResizingChange={(isResizing) => {
+              setIsAnyNoteResizing(isResizing);
+            }}
+            onDraggingChange={(isDragging) => {
+              setIsAnyNoteDragging(isDragging);
+            }}
+          />
+        ))}
     </Layer>
   );
 };

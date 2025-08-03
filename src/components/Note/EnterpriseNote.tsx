@@ -118,6 +118,7 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
       ref={groupRef}
       x={currentX}
       y={currentY}
+      zIndex={note.zIndex || 0}
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}

@@ -28,3 +28,6 @@ dist-ssr
 .env
 .env.local
 .env.production
+
+# Local documentation
+DEPLOYMENT_GUIDE.md

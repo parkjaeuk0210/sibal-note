@@ -75,7 +75,13 @@ export const createSharedCanvas = async (
     },
     createdAt: Date.now(),
     updatedAt: Date.now(),
-    isPublic: false
+    isPublic: false,
+    shareSettings: {
+      allowPublicAccess: false,
+      requirePassword: false,
+      defaultRole: 'viewer' as ParticipantRole,
+      maxParticipants: 2 // Limit to 2 participants (owner + 1 friend)
+    }
   };
 
   await set(newCanvasRef, sharedCanvas);
@@ -155,25 +161,43 @@ export const joinSharedCanvas = async (
   const tokenData = tokenSnapshot.val() as ShareToken;
   
   if (!tokenData) {
-    throw new Error('Invalid share token');
+    throw new Error('유효하지 않은 공유 링크입니다.');
   }
 
   if (tokenData.used) {
-    throw new Error('Share token has already been used');
+    throw new Error('이미 사용된 공유 링크입니다.');
   }
 
   if (tokenData.expiresAt && tokenData.expiresAt < Date.now()) {
-    throw new Error('Share token has expired');
+    throw new Error('만료된 공유 링크입니다.');
   }
 
-  // Get current participants count to assign color
-  const participantsRef = ref(database, getParticipantsPath(tokenData.canvasId));
-  const participantsSnapshot = await new Promise<DataSnapshot>((resolve) => {
-    onValue(participantsRef, resolve, { onlyOnce: true });
+  // Get canvas info to check participant limit
+  const canvasRef = ref(database, getSharedCanvasPath(tokenData.canvasId));
+  const canvasSnapshot = await new Promise<DataSnapshot>((resolve) => {
+    onValue(canvasRef, resolve, { onlyOnce: true });
   });
   
-  const currentParticipants = participantsSnapshot.val() || {};
+  const canvasData = canvasSnapshot.val() as SharedCanvas;
+  if (!canvasData) {
+    throw new Error('캔버스를 찾을 수 없습니다.');
+  }
+
+  // Check if user is already a participant
+  if (canvasData.participants[userId]) {
+    // User is already in the canvas, just return the canvas ID
+    return tokenData.canvasId;
+  }
+
+  // Get current participants count to check limit
+  const currentParticipants = canvasData.participants || {};
   const participantCount = Object.keys(currentParticipants).length;
+  
+  // Check participant limit
+  const maxParticipants = canvasData.shareSettings?.maxParticipants || 2;
+  if (participantCount >= maxParticipants) {
+    throw new Error(`이 캔버스는 최대 ${maxParticipants}명까지만 참여할 수 있습니다.`);
+  }
 
   // Add user as participant
   const participant: CanvasParticipant = {

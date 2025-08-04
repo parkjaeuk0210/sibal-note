@@ -73,10 +73,10 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
   });
 
   // Current dimensions (either temp during resize or actual note dimensions)
-  const currentWidth = tempSize?.width || note.width;
-  const currentHeight = tempSize?.height || note.height;
-  const currentX = tempSize?.x !== undefined ? tempSize.x : note.x;
-  const currentY = tempSize?.y !== undefined ? tempSize.y : note.y;
+  const currentWidth = tempSize?.width || note.width || 200;
+  const currentHeight = tempSize?.height || note.height || 200;
+  const currentX = tempSize?.x !== undefined ? tempSize.x : (note.x || 0);
+  const currentY = tempSize?.y !== undefined ? tempSize.y : (note.y || 0);
 
 
   useEffect(() => {

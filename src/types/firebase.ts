@@ -6,6 +6,7 @@ export interface FirebaseNote {
   width: number;
   height: number;
   color: string;
+  zIndex?: number;
   createdAt: number;
   updatedAt: number;
   userId: string;

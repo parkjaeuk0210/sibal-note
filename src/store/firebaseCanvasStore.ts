@@ -77,6 +77,7 @@ const firebaseNoteToLocal = (firebaseNote: FirebaseNote): Note => ({
   width: firebaseNote.width,
   height: firebaseNote.height,
   color: firebaseNote.color as NoteColor,
+  zIndex: firebaseNote.zIndex || 0,
   createdAt: new Date(firebaseNote.createdAt),
   updatedAt: new Date(firebaseNote.updatedAt),
 });
@@ -131,6 +132,10 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
     const user = auth.currentUser;
     if (!user) return;
 
+    const state = get();
+    // Get the maximum zIndex from all notes
+    const maxZIndex = Math.max(...state.notes.map(n => n.zIndex || 0), 0);
+
     const newNote: Omit<FirebaseNote, 'id' | 'userId' | 'deviceId'> = {
       content: '',
       x,
@@ -138,6 +143,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
       width: 200,
       height: 200,
       color: defaultColors[Math.floor(Math.random() * defaultColors.length)],
+      zIndex: maxZIndex + 1,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
@@ -199,7 +205,44 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   },
 
   selectNote: (id: string | null) => {
-    set({ selectedNoteId: id, selectedImageId: null, selectedFileId: null });
+    const user = auth.currentUser;
+    if (!user) {
+      set({ selectedNoteId: id, selectedImageId: null, selectedFileId: null });
+      return;
+    }
+
+    const state = get();
+    
+    if (id) {
+      // Get the maximum zIndex from all notes
+      const maxZIndex = Math.max(...state.notes.map(n => n.zIndex || 0), 0);
+      
+      // Update the selected note's zIndex to be on top
+      const noteToUpdate = state.notes.find(n => n.id === id);
+      if (noteToUpdate) {
+        // Update locally first
+        const updatedNotes = state.notes.map(note =>
+          note.id === id
+            ? { ...note, zIndex: maxZIndex + 1 }
+            : note
+        );
+        
+        set({
+          notes: updatedNotes,
+          selectedNoteId: id,
+          selectedImageId: null,
+          selectedFileId: null
+        });
+        
+        // Then update Firebase
+        updateNoteInFirebase(user.uid, id, { zIndex: maxZIndex + 1 })
+          .catch((error) => {
+            console.error('Failed to update note zIndex:', error);
+          });
+      }
+    } else {
+      set({ selectedNoteId: id, selectedImageId: null, selectedFileId: null });
+    }
   },
 
   // Image actions (similar pattern)

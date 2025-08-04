@@ -26,7 +26,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose }) => {
     
     setIsCreating(true);
     try {
-      const newCanvasId = await createCanvas(canvasName);
+      await createCanvas(canvasName);
       // Canvas created successfully
       setCanvasName('');
     } catch (error) {

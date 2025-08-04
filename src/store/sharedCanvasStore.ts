@@ -45,6 +45,9 @@ export interface SharedCanvasStore {
   selectedImageId: string | null;
   selectedFileId: string | null;
   
+  // Dark mode
+  isDarkMode: boolean;
+  
   // Collaboration state
   participants: Record<string, CanvasParticipant>;
   presence: Record<string, PresenceData>;
@@ -88,6 +91,8 @@ export interface SharedCanvasStore {
   
   // Utility
   clearCanvas: () => void;
+  toggleDarkMode: () => void;
+  setDarkMode: (isDark: boolean) => void;
   initializeSharedCanvas: (canvasId: string) => void;
   cleanupSharedCanvas: () => void;
   
@@ -156,6 +161,7 @@ export const useSharedCanvasStore = create<SharedCanvasStore>()(
       selectedNoteId: null,
       selectedImageId: null,
       selectedFileId: null,
+      isDarkMode: false,
       participants: {},
       presence: {},
       isSyncing: false,
@@ -524,6 +530,14 @@ export const useSharedCanvasStore = create<SharedCanvasStore>()(
         ])
           .catch((error) => set({ syncError: error as Error }))
           .finally(() => set({ isSyncing: false }));
+      },
+
+      toggleDarkMode: () => {
+        set((state) => ({ isDarkMode: !state.isDarkMode }));
+      },
+
+      setDarkMode: (isDark: boolean) => {
+        set({ isDarkMode: isDark });
       },
 
       // Initialize shared canvas

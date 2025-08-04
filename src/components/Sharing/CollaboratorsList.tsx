@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSharedCanvasStore } from '../../store/sharedCanvasStore';
 import { useAuth } from '../../contexts/AuthContext';
-import { CanvasParticipant, ParticipantRole } from '../../types/sharing';
+import { ParticipantRole } from '../../types/sharing';
 
 export const CollaboratorsList: React.FC = () => {
   const { user } = useAuth();

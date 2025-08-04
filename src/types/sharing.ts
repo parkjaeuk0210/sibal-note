@@ -60,9 +60,3 @@ export interface PresenceData {
   };
   selectedItemId?: string;
 }
-
-export interface ShareInvite {
-  email: string;
-  role: ParticipantRole;
-  message?: string;
-}

@@ -16,8 +16,7 @@ import {
   ShareToken, 
   CanvasParticipant, 
   ParticipantRole,
-  PresenceData,
-  ShareInvite
+  PresenceData
 } from '../types/sharing';
 import { FirebaseNote, FirebaseImage, FirebaseFile } from '../types/firebase';
 

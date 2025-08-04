@@ -36,6 +36,7 @@ const generateParticipantColor = (index: number) => {
 };
 
 // Database paths
+const getUserSharedCanvasesPath = (userId: string) => `users/${userId}/shared_canvases`;
 const getSharedCanvasPath = (canvasId: string) => `shared_canvases/${canvasId}`;
 const getSharedNotesPath = (canvasId: string) => `${getSharedCanvasPath(canvasId)}/notes`;
 const getSharedImagesPath = (canvasId: string) => `${getSharedCanvasPath(canvasId)}/images`;
@@ -85,6 +86,15 @@ export const createSharedCanvas = async (
   };
 
   await set(newCanvasRef, sharedCanvas);
+
+  // Add canvas to user's shared canvas list
+  const userCanvasesRef = ref(database, `${getUserSharedCanvasesPath(userId)}/${canvasId}`);
+  await set(userCanvasesRef, {
+    canvasId,
+    name: canvasName,
+    role: 'owner',
+    joinedAt: Date.now()
+  });
 
   // Copy existing notes, images, and files to shared canvas
   if (currentNotes && currentNotes.length > 0) {
@@ -220,6 +230,15 @@ export const joinSharedCanvas = async (
     used: true,
     usedBy: userId,
     usedAt: Date.now()
+  });
+
+  // Add canvas to user's shared canvas list
+  const userCanvasesRef = ref(database, `${getUserSharedCanvasesPath(userId)}/${tokenData.canvasId}`);
+  await set(userCanvasesRef, {
+    canvasId: tokenData.canvasId,
+    name: canvasData.name,
+    role: tokenData.role,
+    joinedAt: Date.now()
   });
 
   return tokenData.canvasId;
@@ -460,4 +479,70 @@ export const updateSharedFile = async (
 export const deleteSharedFile = async (canvasId: string, fileId: string) => {
   const fileRef = ref(database, `${getSharedFilesPath(canvasId)}/${fileId}`);
   await remove(fileRef);
+};
+
+// Get user's shared canvases
+export const getUserSharedCanvases = async (userId: string): Promise<Array<{
+  canvasId: string;
+  name: string;
+  role: 'owner' | 'editor' | 'viewer';
+  joinedAt: number;
+  participantCount?: number;
+}>> => {
+  const userCanvasesRef = ref(database, getUserSharedCanvasesPath(userId));
+  const snapshot = await new Promise<DataSnapshot>((resolve) => {
+    onValue(userCanvasesRef, resolve, { onlyOnce: true });
+  });
+  
+  const canvasesData = snapshot.val() || {};
+  const canvasList = [];
+  
+  // Get additional info for each canvas
+  for (const [canvasId, canvasInfo] of Object.entries(canvasesData)) {
+    const canvasRef = ref(database, getSharedCanvasPath(canvasId));
+    const canvasSnapshot = await new Promise<DataSnapshot>((resolve) => {
+      onValue(canvasRef, resolve, { onlyOnce: true });
+    });
+    
+    const canvasData = canvasSnapshot.val() as SharedCanvas;
+    if (canvasData) {
+      canvasList.push({
+        ...(canvasInfo as any),
+        participantCount: Object.keys(canvasData.participants || {}).length
+      });
+    }
+  }
+  
+  return canvasList.sort((a, b) => b.joinedAt - a.joinedAt);
+};
+
+// Leave shared canvas
+export const leaveSharedCanvas = async (userId: string, canvasId: string) => {
+  // Get canvas data first
+  const canvasRef = ref(database, getSharedCanvasPath(canvasId));
+  const canvasSnapshot = await new Promise<DataSnapshot>((resolve) => {
+    onValue(canvasRef, resolve, { onlyOnce: true });
+  });
+  
+  const canvasData = canvasSnapshot.val() as SharedCanvas;
+  if (!canvasData) {
+    throw new Error('캔버스를 찾을 수 없습니다.');
+  }
+  
+  // Check if user is the owner
+  if (canvasData.owner === userId) {
+    throw new Error('캔버스 소유자는 나갈 수 없습니다. 캔버스를 삭제하려면 모든 참여자를 제거하세요.');
+  }
+  
+  // Remove from participants
+  const participantRef = ref(database, `${getParticipantsPath(canvasId)}/${userId}`);
+  await remove(participantRef);
+  
+  // Remove from presence
+  const presenceRef = ref(database, `${getPresencePath(canvasId)}/${userId}`);
+  await remove(presenceRef);
+  
+  // Remove from user's canvas list
+  const userCanvasRef = ref(database, `${getUserSharedCanvasesPath(userId)}/${canvasId}`);
+  await remove(userCanvasRef);
 };

@@ -10,8 +10,10 @@ import { CanvasErrorBoundary } from './components/CanvasErrorBoundary';
 import { LoginModal } from './components/Auth/LoginModal';
 import { UserProfile } from './components/Auth/UserProfile';
 import { CollaboratorsList } from './components/Sharing/CollaboratorsList';
+import { CanvasList } from './components/Canvas/CanvasList';
 import { useAuth } from './contexts/AuthContext';
 import { useAppStore, useStoreMode } from './contexts/StoreProvider';
+import { useSharedCanvasStore } from './store/sharedCanvasStore';
 import { useHistoryStore } from './store/historyStore';
 import './styles/glassmorphism.css';
 import './styles/dark-mode.css';
@@ -19,7 +21,9 @@ import './styles/dark-mode.css';
 function App() {
   const { user } = useAuth();
   const { isSharedMode } = useStoreMode();
+  const { canvasInfo } = useSharedCanvasStore();
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showCanvasList, setShowCanvasList] = useState(false);
   const undo = useAppStore((state) => state.undo);
   const redo = useAppStore((state) => state.redo);
   const canUndo = useHistoryStore((state) => state.canUndo());
@@ -36,6 +40,16 @@ function App() {
       }
     }
   }, []);
+
+  // Check if we need to load a shared canvas
+  useEffect(() => {
+    const canvasId = sessionStorage.getItem('loadSharedCanvas');
+    if (canvasId && user) {
+      sessionStorage.removeItem('loadSharedCanvas');
+      const sharedStore = useSharedCanvasStore.getState();
+      sharedStore.initializeSharedCanvas(canvasId);
+    }
+  }, [user]);
 
   // Keyboard shortcuts for undo/redo
   useEffect(() => {
@@ -84,8 +98,26 @@ function App() {
         
         {/* Top bar */}
         <div className="fixed top-6 left-6 right-6 z-50 flex justify-between items-center">
-          {/* Left side - Undo/Redo and Sync status */}
+          {/* Left side - Canvas selector, Undo/Redo and Sync status */}
           <div className="flex items-center gap-3">
+            {user && (
+              <button
+                onClick={() => setShowCanvasList(true)}
+                className="glass-button rounded-full px-4 py-2 flex items-center gap-2 hover:scale-105 transition-transform"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <span className="font-medium">
+                  {isSharedMode && canvasInfo ? canvasInfo.name : '내 캔버스'}
+                </span>
+                {isSharedMode && (
+                  <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">
+                    공유
+                  </span>
+                )}
+              </button>
+            )}
             <div className="flex gap-2">
               <button
                 onClick={undo}
@@ -141,6 +173,12 @@ function App() {
         
         {/* Collaborators List - Only show in shared mode */}
         {isSharedMode && <CollaboratorsList />}
+        
+        {/* Canvas List */}
+        <CanvasList 
+          isOpen={showCanvasList} 
+          onClose={() => setShowCanvasList(false)} 
+        />
       </div>
     </ErrorBoundary>
   );

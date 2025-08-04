@@ -119,15 +119,19 @@ export const generateShareLink = async (
   expiresInHours?: number
 ) => {
   const token = generateShareToken();
-  const shareToken: ShareToken = {
+  const shareToken: Omit<ShareToken, 'expiresAt'> & { expiresAt?: number } = {
     token,
     canvasId,
     createdBy: userId,
     createdAt: Date.now(),
-    expiresAt: expiresInHours ? Date.now() + (expiresInHours * 60 * 60 * 1000) : undefined,
     role,
     used: false
   };
+
+  // Only add expiresAt if it's defined
+  if (expiresInHours) {
+    shareToken.expiresAt = Date.now() + (expiresInHours * 60 * 60 * 1000);
+  }
 
   const tokenRef = ref(database, getShareTokenPath(token));
   await set(tokenRef, shareToken);

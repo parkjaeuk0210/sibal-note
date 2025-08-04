@@ -59,7 +59,7 @@ export interface SharedCanvasStore {
   
   // Canvas management
   createCanvas: (name: string) => Promise<string>;
-  joinCanvas: (token: string) => Promise<string>;
+  joinCanvas: (token: string, customDisplayName?: string) => Promise<string>;
   leaveCanvas: () => void;
   
   // Share management
@@ -221,7 +221,7 @@ export const useSharedCanvasStore = create<SharedCanvasStore>()(
         }
       },
 
-      joinCanvas: async (token: string) => {
+      joinCanvas: async (token: string, customDisplayName?: string) => {
         const user = auth.currentUser;
         if (!user) throw new Error('User not authenticated');
 
@@ -230,8 +230,8 @@ export const useSharedCanvasStore = create<SharedCanvasStore>()(
           const canvasId = await joinSharedCanvas(
             token,
             user.uid,
-            user.email!,
-            user.displayName || undefined,
+            user.email || 'anonymous@interectnote.app',
+            customDisplayName || user.displayName || undefined,
             user.photoURL || undefined
           );
           

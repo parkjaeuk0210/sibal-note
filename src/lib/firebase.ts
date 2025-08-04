@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInAnonymously, linkWithCredential } from 'firebase/auth';
 import { getDatabase } from 'firebase/database';
 import { getStorage } from 'firebase/storage';
 
@@ -46,5 +46,50 @@ if (typeof window !== 'undefined' && database) {
     window.addEventListener('offline', () => goOffline(database));
   });
 }
+
+// Anonymous auth helper functions
+export const signInAnonymouslyHelper = async () => {
+  if (!auth) {
+    throw new Error('Firebase auth is not initialized');
+  }
+  try {
+    const result = await signInAnonymously(auth);
+    return result.user;
+  } catch (error) {
+    console.error('Anonymous sign in failed:', error);
+    throw error;
+  }
+};
+
+// Check if current user is anonymous
+export const isAnonymousUser = (user: any) => {
+  return user?.isAnonymous === true;
+};
+
+// Generate random guest name
+export const generateGuestName = () => {
+  const randomNum = Math.floor(Math.random() * 10000);
+  return `게스트${randomNum}`;
+};
+
+// Link anonymous account with Google account
+export const linkAnonymousWithGoogle = async (user: any) => {
+  if (!user || !user.isAnonymous) {
+    throw new Error('User is not anonymous');
+  }
+  
+  try {
+    const credential = GoogleAuthProvider.credential();
+    const result = await linkWithCredential(user, credential);
+    return result.user;
+  } catch (error: any) {
+    // If linking fails due to credential already in use, just sign in with Google
+    if (error.code === 'auth/credential-already-in-use') {
+      const { signInWithPopup } = await import('firebase/auth');
+      return signInWithPopup(auth, googleProvider);
+    }
+    throw error;
+  }
+};
 
 export default app;

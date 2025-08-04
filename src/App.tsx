@@ -24,6 +24,18 @@ function App() {
   const redo = useAppStore((state) => state.redo);
   const canUndo = useHistoryStore((state) => state.canUndo());
   const canRedo = useHistoryStore((state) => state.canRedo());
+  
+  // Check if we need to show login modal from share link
+  useEffect(() => {
+    const state = window.history.state?.usr;
+    if (state?.showLogin) {
+      setShowLoginModal(true);
+      // Store share token for after login
+      if (state.shareToken) {
+        sessionStorage.setItem('pendingShareToken', state.shareToken);
+      }
+    }
+  }, []);
 
   // Keyboard shortcuts for undo/redo
   useEffect(() => {

@@ -23,35 +23,28 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Check if we're in shared canvas mode
   useEffect(() => {
     const checkSharedMode = () => {
-      // Check URL for share token
-      const pathParts = window.location.pathname.split('/');
-      if (pathParts[1] === 'share' && pathParts[2]) {
-        setIsSharedMode(true);
-      } else {
-        // Check if already in a shared canvas
-        const sharedCanvasId = sharedStore.canvasId;
-        setIsSharedMode(!!sharedCanvasId);
-      }
+      // Check if already in a shared canvas
+      const sharedCanvasId = sharedStore.canvasId;
+      setIsSharedMode(!!sharedCanvasId);
     };
 
     checkSharedMode();
-    
-    // Listen for URL changes
-    window.addEventListener('popstate', checkSharedMode);
-    return () => window.removeEventListener('popstate', checkSharedMode);
   }, [sharedStore.canvasId]);
 
   useEffect(() => {
-    if (isSharedMode) {
-      // Handle shared canvas mode
-      const pathParts = window.location.pathname.split('/');
-      if (pathParts[1] === 'share' && pathParts[2] && user) {
-        // Auto-join shared canvas using token
-        sharedStore.joinCanvas(pathParts[2]).catch(error => {
-          console.error('Failed to join shared canvas:', error);
-          setIsSharedMode(false);
-        });
+    // Check for pending share token after login
+    if (user && !loading) {
+      const pendingToken = sessionStorage.getItem('pendingShareToken');
+      if (pendingToken) {
+        sessionStorage.removeItem('pendingShareToken');
+        // Navigate to share link
+        window.location.href = `/share/${pendingToken}`;
+        return;
       }
+    }
+    
+    if (isSharedMode) {
+      // Already in shared mode, no need to do anything
     } else if (isFirebaseMode && user) {
       // Initialize Firebase sync
       firebaseStore.initializeFirebaseSync(user.uid);

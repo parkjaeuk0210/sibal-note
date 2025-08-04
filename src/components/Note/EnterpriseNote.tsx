@@ -121,7 +121,7 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
       ref={groupRef}
       x={currentX}
       y={currentY}
-      zIndex={note.zIndex || 0}
+      // zIndex is controlled by the order of elements in the parent Layer
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}

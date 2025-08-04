@@ -138,7 +138,7 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
       ref={groupRef}
       x={note.x}
       y={note.y}
-      zIndex={note.zIndex || 0}
+      // zIndex is controlled by the order of elements in the parent Layer
       draggable
       onDragEnd={handleDragEnd}
       onClick={handleClick}

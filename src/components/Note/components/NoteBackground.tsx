@@ -23,10 +23,14 @@ export const NoteBackground: React.FC<NoteBackgroundProps> = ({
   isResizing,
   performanceMode,
 }) => {
+  // Ensure width and height are valid numbers
+  const safeWidth = Math.max(1, width || 200);
+  const safeHeight = Math.max(1, height || 200);
+  
   return (
     <Shape
       sceneFunc={(context) => {
-        const gradient = context.createLinearGradient(0, 0, width * 0.5, height);
+        const gradient = context.createLinearGradient(0, 0, safeWidth * 0.5, safeHeight);
         
         if (isDarkMode) {
           switch (color) {
@@ -97,7 +101,7 @@ export const NoteBackground: React.FC<NoteBackgroundProps> = ({
         }
         
         context.beginPath();
-        context.roundRect(0, 0, width, height, CORNER_RADIUS);
+        context.roundRect(0, 0, safeWidth, safeHeight, CORNER_RADIUS);
         context.fillStyle = gradient;
         context.fill();
         context.closePath();

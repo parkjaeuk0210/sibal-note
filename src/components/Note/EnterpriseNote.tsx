@@ -34,7 +34,10 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
   const isDarkMode = useAppStore((state) => state.isDarkMode);
   
   const colors = useMemo(
-    () => isDarkMode ? NOTE_COLORS_DARK[note.color] : NOTE_COLORS[note.color], 
+    () => {
+      const colorKey = note.color || 'yellow'; // Default to yellow if color is undefined
+      return isDarkMode ? NOTE_COLORS_DARK[colorKey] : NOTE_COLORS[colorKey];
+    },
     [note.color, isDarkMode]
   );
   
@@ -70,10 +73,10 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
   });
 
   // Current dimensions (either temp during resize or actual note dimensions)
-  const currentWidth = tempSize?.width || note.width;
-  const currentHeight = tempSize?.height || note.height;
-  const currentX = tempSize?.x !== undefined ? tempSize.x : note.x;
-  const currentY = tempSize?.y !== undefined ? tempSize.y : note.y;
+  const currentWidth = tempSize?.width || note.width || 200;
+  const currentHeight = tempSize?.height || note.height || 200;
+  const currentX = tempSize?.x !== undefined ? tempSize.x : (note.x || 0);
+  const currentY = tempSize?.y !== undefined ? tempSize.y : (note.y || 0);
 
 
   useEffect(() => {
@@ -118,8 +121,8 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
       ref={groupRef}
       x={currentX}
       y={currentY}
-      zIndex={note.zIndex || 0}
-      draggable
+      // zIndex is controlled by the order of elements in the parent Layer
+      draggable={!isEditing}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onClick={handleClick}

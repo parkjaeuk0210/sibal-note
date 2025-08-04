@@ -210,17 +210,26 @@ export const joinSharedCanvas = async (
   }
 
   // Add user as participant
-  const participant: CanvasParticipant = {
+  const participant: Omit<CanvasParticipant, 'displayName' | 'photoURL'> & {
+    displayName?: string;
+    photoURL?: string;
+  } = {
     userId,
     email: userEmail,
-    displayName,
-    photoURL,
     role: tokenData.role,
     joinedAt: Date.now(),
     lastActiveAt: Date.now(),
     isOnline: true,
     color: generateParticipantColor(participantCount)
   };
+
+  // Only add optional fields if they are defined
+  if (displayName) {
+    participant.displayName = displayName;
+  }
+  if (photoURL) {
+    participant.photoURL = photoURL;
+  }
 
   const participantRef = ref(database, `${getParticipantsPath(tokenData.canvasId)}/${userId}`);
   await set(participantRef, participant);

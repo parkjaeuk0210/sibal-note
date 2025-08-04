@@ -38,7 +38,10 @@ export const ResizeHandles = ({
   
   // Get colors based on note color and theme
   const colors = useMemo(
-    () => isDarkMode ? NOTE_COLORS_DARK[note.color] : NOTE_COLORS[note.color],
+    () => {
+      const colorKey = note.color || 'yellow'; // Default to yellow if color is undefined
+      return isDarkMode ? NOTE_COLORS_DARK[colorKey] : NOTE_COLORS[colorKey];
+    },
     [note.color, isDarkMode]
   );
   

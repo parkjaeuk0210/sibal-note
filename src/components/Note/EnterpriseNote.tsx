@@ -34,7 +34,10 @@ export const EnterpriseNote = React.memo(({ note, isEditing = false, onStartEdit
   const isDarkMode = useAppStore((state) => state.isDarkMode);
   
   const colors = useMemo(
-    () => isDarkMode ? NOTE_COLORS_DARK[note.color] : NOTE_COLORS[note.color], 
+    () => {
+      const colorKey = note.color || 'yellow'; // Default to yellow if color is undefined
+      return isDarkMode ? NOTE_COLORS_DARK[colorKey] : NOTE_COLORS[colorKey];
+    },
     [note.color, isDarkMode]
   );
   

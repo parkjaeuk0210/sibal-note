@@ -5,6 +5,43 @@
         ".read": "$uid === auth.uid",
         ".write": "$uid === auth.uid"
       }
+    },
+    "shared_canvases": {
+      "$canvasId": {
+        ".read": "auth != null && (data.child('owner').val() === auth.uid || data.child('participants').child(auth.uid).exists())",
+        ".write": "auth != null && (data.child('owner').val() === auth.uid || (data.child('participants').child(auth.uid).child('role').val() === 'editor'))",
+        "participants": {
+          "$participantId": {
+            ".write": "auth != null && (root.child('shared_canvases').child($canvasId).child('owner').val() === auth.uid || $participantId === auth.uid)"
+          }
+        },
+        "notes": {
+          "$noteId": {
+            ".write": "auth != null && (root.child('shared_canvases').child($canvasId).child('participants').child(auth.uid).child('role').val() === 'editor' || root.child('shared_canvases').child($canvasId).child('owner').val() === auth.uid)"
+          }
+        },
+        "images": {
+          "$imageId": {
+            ".write": "auth != null && (root.child('shared_canvases').child($canvasId).child('participants').child(auth.uid).child('role').val() === 'editor' || root.child('shared_canvases').child($canvasId).child('owner').val() === auth.uid)"
+          }
+        },
+        "files": {
+          "$fileId": {
+            ".write": "auth != null && (root.child('shared_canvases').child($canvasId).child('participants').child(auth.uid).child('role').val() === 'editor' || root.child('shared_canvases').child($canvasId).child('owner').val() === auth.uid)"
+          }
+        },
+        "presence": {
+          "$userId": {
+            ".write": "$userId === auth.uid"
+          }
+        }
+      }
+    },
+    "share_tokens": {
+      "$token": {
+        ".read": true,
+        ".write": "auth != null && (!data.exists() || data.child('createdBy').val() === auth.uid)"
+      }
     }
   }
 }

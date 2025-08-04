@@ -4,8 +4,11 @@ import { ColorPicker } from './ColorPicker';
 import { FileType } from '../../types';
 import { compressImage, getDataUrlSize, formatBytes } from '../../utils/imageCompression';
 import { getLocalStorageUsagePercent, isLocalStorageNearLimit } from '../../utils/storageUtils';
+import { useAuth } from '../../contexts/AuthContext';
+import { ShareModal } from '../Sharing/ShareModal';
 
 export const Toolbar = () => {
+  const { user } = useAuth();
   const notes = useAppStore((state) => state.notes);
   const selectedNoteId = useAppStore((state) => state.selectedNoteId);
   const selectedImageId = useAppStore((state) => state.selectedImageId);
@@ -24,6 +27,7 @@ export const Toolbar = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const selectedNote = notes.find(n => n.id === selectedNoteId);
   const [storageUsage, setStorageUsage] = useState(0);
+  const [showShareModal, setShowShareModal] = useState(false);
   
   // Monitor storage usage
   useEffect(() => {
@@ -178,6 +182,22 @@ export const Toolbar = () => {
           </svg>
         </button>
 
+        {user && (
+          <>
+            <div className="w-px h-6 bg-gray-300" />
+            
+            <button
+              onClick={() => setShowShareModal(true)}
+              className="glass-button rounded-full p-3 hover:scale-105 transition-transform"
+              title="공유하기"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m9.032 4.026a3 3 0 10-5.464 0m5.464 0a3 3 0 10-5.464 0M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+          </>
+        )}
+
         <div className="text-sm text-gray-600">
           {Math.round(viewport.scale * 100)}%
           {storageUsage > 50 && (
@@ -244,6 +264,14 @@ export const Toolbar = () => {
           </>
         )}
       </div>
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <ShareModal 
+          isOpen={showShareModal} 
+          onClose={() => setShowShareModal(false)} 
+        />
+      )}
     </div>
   );
 };

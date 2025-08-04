@@ -9,14 +9,16 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { CanvasErrorBoundary } from './components/CanvasErrorBoundary';
 import { LoginModal } from './components/Auth/LoginModal';
 import { UserProfile } from './components/Auth/UserProfile';
+import { CollaboratorsList } from './components/Sharing/CollaboratorsList';
 import { useAuth } from './contexts/AuthContext';
-import { useAppStore } from './contexts/StoreProvider';
+import { useAppStore, useStoreMode } from './contexts/StoreProvider';
 import { useHistoryStore } from './store/historyStore';
 import './styles/glassmorphism.css';
 import './styles/dark-mode.css';
 
 function App() {
   const { user } = useAuth();
+  const { isSharedMode } = useStoreMode();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const undo = useAppStore((state) => state.undo);
   const redo = useAppStore((state) => state.redo);
@@ -124,6 +126,9 @@ function App() {
           isOpen={showLoginModal} 
           onClose={() => setShowLoginModal(false)} 
         />
+        
+        {/* Collaborators List - Only show in shared mode */}
+        {isSharedMode && <CollaboratorsList />}
       </div>
     </ErrorBoundary>
   );

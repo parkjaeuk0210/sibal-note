@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useSharedCanvasStore } from '../../store/sharedCanvasStore';
 import { useAuth } from '../../contexts/AuthContext';
 import { ParticipantRole } from '../../types/sharing';
 
-export const CollaboratorsList: React.FC = () => {
+interface CollaboratorsListProps {
+  onClose: () => void;
+}
+
+export const CollaboratorsList: React.FC<CollaboratorsListProps> = ({ onClose }) => {
   const { user } = useAuth();
   const { 
     participants, 
@@ -13,6 +17,29 @@ export const CollaboratorsList: React.FC = () => {
     updateParticipantRole,
     canvasInfo 
   } = useSharedCanvasStore();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Close on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [onClose]);
 
   if (!canvasInfo || Object.keys(participants).length <= 1) {
     return null;
@@ -46,13 +73,24 @@ export const CollaboratorsList: React.FC = () => {
   };
 
   return (
-    <div className="fixed top-20 right-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 max-w-xs w-64 z-40">
-      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-        참여자 ({Object.keys(participants).length})
-      </h3>
+    <div ref={containerRef} className="fixed top-20 right-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 max-w-xs w-64 z-40">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center">
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          참여자 ({Object.keys(participants).length})
+        </h3>
+        <button
+          onClick={onClose}
+          className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+          title="닫기"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
 
       <div className="space-y-2 max-h-80 overflow-y-auto">
         {Object.entries(participants).map(([userId, participant]) => {

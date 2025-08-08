@@ -6,8 +6,15 @@ import { compressImage, getDataUrlSize, formatBytes } from '../../utils/imageCom
 import { getLocalStorageUsagePercent, isLocalStorageNearLimit } from '../../utils/storageUtils';
 import { useAuth } from '../../contexts/AuthContext';
 import { ShareModal } from '../Sharing/ShareModal';
+import { useSharedCanvasStore } from '../../store/sharedCanvasStore';
 
-export const Toolbar = () => {
+interface ToolbarProps {
+  isSharedMode?: boolean;
+  showCollaborators?: boolean;
+  onToggleCollaborators?: () => void;
+}
+
+export const Toolbar = ({ isSharedMode, showCollaborators, onToggleCollaborators }: ToolbarProps) => {
   const { user } = useAuth();
   const notes = useAppStore((state) => state.notes);
   const selectedNoteId = useAppStore((state) => state.selectedNoteId);
@@ -28,6 +35,7 @@ export const Toolbar = () => {
   const selectedNote = notes.find(n => n.id === selectedNoteId);
   const [storageUsage, setStorageUsage] = useState(0);
   const [showShareModal, setShowShareModal] = useState(false);
+  const { participants } = useSharedCanvasStore();
   
   // Monitor storage usage
   useEffect(() => {
@@ -195,6 +203,26 @@ export const Toolbar = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m9.032 4.026a3 3 0 10-5.464 0m5.464 0a3 3 0 10-5.464 0M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </button>
+            
+            {/* Show participants button in shared mode */}
+            {isSharedMode && Object.keys(participants).length > 1 && (
+              <button
+                onClick={onToggleCollaborators}
+                className={`glass-button rounded-full p-3 hover:scale-105 transition-transform ${
+                  showCollaborators ? 'bg-blue-500 bg-opacity-20' : ''
+                }`}
+                title={showCollaborators ? "참여자 목록 숨기기" : "참여자 목록 보기"}
+              >
+                <div className="relative">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                  <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                    {Object.keys(participants).length}
+                  </span>
+                </div>
+              </button>
+            )}
           </>
         )}
 

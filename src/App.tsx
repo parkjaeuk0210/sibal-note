@@ -24,6 +24,7 @@ function App() {
   const { canvasInfo } = useSharedCanvasStore();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showCanvasList, setShowCanvasList] = useState(false);
+  const [showCollaborators, setShowCollaborators] = useState(true); // Show by default in shared mode
   const undo = useAppStore((state) => state.undo);
   const redo = useAppStore((state) => state.redo);
   const canUndo = useHistoryStore((state) => state.canUndo());
@@ -92,7 +93,11 @@ function App() {
         <CanvasErrorBoundary>
           <InfiniteCanvas />
         </CanvasErrorBoundary>
-        <Toolbar />
+        <Toolbar 
+          isSharedMode={isSharedMode}
+          showCollaborators={showCollaborators}
+          onToggleCollaborators={() => setShowCollaborators(!showCollaborators)}
+        />
         <FloatingButton />
         <HelpTooltip />
         
@@ -172,7 +177,9 @@ function App() {
         />
         
         {/* Collaborators List - Only show in shared mode */}
-        {isSharedMode && <CollaboratorsList />}
+        {isSharedMode && showCollaborators && (
+          <CollaboratorsList onClose={() => setShowCollaborators(false)} />
+        )}
         
         {/* Canvas List */}
         <CanvasList 

@@ -177,8 +177,11 @@ export const joinSharedCanvas = async (
     throw new Error('유효하지 않은 공유 링크입니다.');
   }
 
-  if (tokenData.used) {
-    throw new Error('이미 사용된 공유 링크입니다.');
+  // Remove single-use token check - tokens should be reusable for multiple users
+  // Only check if this specific user has already used this token
+  if (tokenData.usedBy && tokenData.usedBy === userId) {
+    // This user has already joined with this token, just redirect to canvas
+    return tokenData.canvasId;
   }
 
   if (tokenData.expiresAt && tokenData.expiresAt < Date.now()) {
@@ -250,11 +253,12 @@ export const joinSharedCanvas = async (
   const participantRef = ref(database, `${getParticipantsPath(tokenData.canvasId)}/${userId}`);
   await set(participantRef, participant);
 
-  // Mark token as used
-  await update(tokenRef, {
-    used: true,
-    usedBy: userId,
-    usedAt: Date.now()
+  // Track who has used the token (for analytics, not for blocking)
+  // Don't mark as "used" to allow multiple users to join
+  const usageRef = ref(database, `${getShareTokenPath(token)}/usage/${userId}`);
+  await set(usageRef, {
+    userId,
+    joinedAt: Date.now()
   });
 
   // Add canvas to user's shared canvas list

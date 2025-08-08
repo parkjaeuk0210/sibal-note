@@ -197,13 +197,13 @@ export const joinSharedCanvas = async (
   }
 
   // Check if user is already a participant
-  if (canvasData.participants[userId]) {
+  const currentParticipants = canvasData.participants || {};
+  if (currentParticipants[userId]) {
     // User is already in the canvas, just return the canvas ID
     return tokenData.canvasId;
   }
 
   // Get current participants count to check limit
-  const currentParticipants = canvasData.participants || {};
   const participantCount = Object.keys(currentParticipants).length;
   
   // Check participant limit (treat old 2-person limit as 10)
@@ -212,8 +212,17 @@ export const joinSharedCanvas = async (
   // Don't update Firebase as new users don't have permission yet
   const maxParticipants = (storedLimit === 2) ? 10 : (storedLimit || 10);
   
+  // Debug logging to understand the issue
+  console.log('Join Canvas Debug:', {
+    participantCount,
+    storedLimit,
+    maxParticipants,
+    currentParticipants: Object.keys(currentParticipants),
+    userId
+  });
+  
   if (participantCount >= maxParticipants) {
-    throw new Error(`이 캔버스는 최대 ${maxParticipants}명까지만 참여할 수 있습니다.`);
+    throw new Error(`이 캔버스는 최대 ${maxParticipants}명까지만 참여할 수 있습니다. (현재: ${participantCount}명)`);
   }
 
   // Add user as participant

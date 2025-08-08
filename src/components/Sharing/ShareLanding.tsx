@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSharedCanvasStore } from '../../store/sharedCanvasStore';
 import { generateGuestName } from '../../lib/firebase';
+import { checkRateLimit, RATE_LIMITS, formatRetryMessage } from '../../utils/rateLimit';
 
 export const ShareLanding: React.FC = () => {
   const { token } = useParams<{ token: string }>();
@@ -22,6 +23,13 @@ export const ShareLanding: React.FC = () => {
   const handleJoinCanvas = async () => {
     if (!token || !user) return;
     
+    // Check rate limit for canvas join
+    const rateLimitCheck = await checkRateLimit(RATE_LIMITS.CANVAS_JOIN);
+    if (!rateLimitCheck.allowed) {
+      setError(formatRetryMessage(rateLimitCheck.retryAfter || 60));
+      return;
+    }
+    
     setIsJoining(true);
     setError(null);
     
@@ -40,6 +48,13 @@ export const ShareLanding: React.FC = () => {
   };
 
   const handleAnonymousJoin = async () => {
+    // Check rate limit for anonymous sign-in
+    const rateLimitCheck = await checkRateLimit(RATE_LIMITS.ANONYMOUS_SIGNIN);
+    if (!rateLimitCheck.allowed) {
+      setError(formatRetryMessage(rateLimitCheck.retryAfter || 60));
+      return;
+    }
+    
     setIsSigningInAnonymously(true);
     setError(null);
     

@@ -3,6 +3,7 @@ import { useSharedCanvasStore } from '../../store/sharedCanvasStore';
 import { useAppStore } from '../../contexts/StoreProvider';
 import { useAuth } from '../../contexts/AuthContext';
 import { ParticipantRole } from '../../types/sharing';
+import { checkRateLimit, RATE_LIMITS, formatRetryMessage } from '../../utils/rateLimit';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -39,6 +40,13 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose }) => {
 
   const handleGenerateLink = async () => {
     if (!canvasId || !isOwner) return;
+    
+    // Check rate limit for share token generation
+    const rateLimitCheck = await checkRateLimit(RATE_LIMITS.SHARE_TOKEN_GENERATION);
+    if (!rateLimitCheck.allowed) {
+      alert(`공유 링크 생성 제한: ${formatRetryMessage(rateLimitCheck.retryAfter || 60)}`);
+      return;
+    }
     
     try {
       const link = await generateShareLink(shareRole, linkExpiry);

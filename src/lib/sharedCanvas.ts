@@ -32,7 +32,8 @@ const generateShareToken = () => {
 const generateParticipantColor = (index: number) => {
   const colors = [
     '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', 
-    '#98D8C8', '#FDCB6E', '#6C5CE7', '#A29BFE'
+    '#98D8C8', '#FDCB6E', '#6C5CE7', '#A29BFE',
+    '#FF6B9D', '#C44569' // Added 2 more colors for 10 participants
   ];
   return colors[index % colors.length];
 };
@@ -83,7 +84,7 @@ export const createSharedCanvas = async (
       allowPublicAccess: false,
       requirePassword: false,
       defaultRole: 'viewer' as ParticipantRole,
-      maxParticipants: 2 // Limit to 2 participants (owner + 1 friend)
+      maxParticipants: 10 // Limit to 10 participants for team collaboration
     }
   };
 
@@ -206,7 +207,7 @@ export const joinSharedCanvas = async (
   const participantCount = Object.keys(currentParticipants).length;
   
   // Check participant limit
-  const maxParticipants = canvasData.shareSettings?.maxParticipants || 2;
+  const maxParticipants = canvasData.shareSettings?.maxParticipants || 10;
   if (participantCount >= maxParticipants) {
     throw new Error(`이 캔버스는 최대 ${maxParticipants}명까지만 참여할 수 있습니다.`);
   }

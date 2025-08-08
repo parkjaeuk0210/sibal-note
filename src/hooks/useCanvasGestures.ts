@@ -53,6 +53,10 @@ export const useCanvasGestures = ({
     x: 0,
     y: 0,
   });
+  
+  // Store viewport in ref to avoid stale closure
+  const viewportRef = useRef(viewport);
+  viewportRef.current = viewport;
 
   // Apply momentum animation
   const applyMomentum = useCallback(() => {
@@ -61,10 +65,11 @@ export const useCanvasGestures = ({
     const minVelocity = 0.5;
     
     if (Math.abs(momentum.velocityX) > minVelocity || Math.abs(momentum.velocityY) > minVelocity) {
+      const currentViewport = viewportRef.current;
       setViewport({
-        ...viewport,
-        x: viewport.x + momentum.velocityX,
-        y: viewport.y + momentum.velocityY,
+        ...currentViewport,
+        x: currentViewport.x + momentum.velocityX,
+        y: currentViewport.y + momentum.velocityY,
       });
       
       // Apply friction
@@ -82,7 +87,7 @@ export const useCanvasGestures = ({
         momentum.animationId = null;
       }
     }
-  }, [viewport, setViewport]);
+  }, [setViewport]);
   
   // Stop momentum
   const stopMomentum = useCallback(() => {
@@ -135,12 +140,13 @@ export const useCanvasGestures = ({
         } else {
           // Pan behavior (2-finger trackpad scroll or shift+wheel)
           const panSpeed = isTrackpad ? 1 : 2;
-          const invertScroll = isMac ? -1 : 1; // Natural scrolling on macOS
+          // Fix: Correct scroll direction (positive delta moves in positive direction)
+          const invertScroll = isMac ? 1 : -1; // Natural scrolling on macOS is already inverted by the OS
           
           setViewport({
             ...viewport,
-            x: viewport.x - dx * panSpeed * invertScroll,
-            y: viewport.y - dy * panSpeed * invertScroll,
+            x: viewport.x + dx * panSpeed * invertScroll,
+            y: viewport.y + dy * panSpeed * invertScroll,
           });
           
           // Calculate velocity for momentum
@@ -149,8 +155,8 @@ export const useCanvasGestures = ({
             const timeDelta = now - lastGestureRef.current.time;
             
             if (timeDelta > 0 && timeDelta < 100) {
-              momentumRef.current.velocityX = -dx * panSpeed * invertScroll * 0.5;
-              momentumRef.current.velocityY = -dy * panSpeed * invertScroll * 0.5;
+              momentumRef.current.velocityX = dx * panSpeed * invertScroll * 0.5;
+              momentumRef.current.velocityY = dy * panSpeed * invertScroll * 0.5;
             }
             
             lastGestureRef.current = { time: now, x: dx, y: dy };

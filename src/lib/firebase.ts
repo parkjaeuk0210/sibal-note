@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInAnonymously, linkWithCredential } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInAnonymously } from 'firebase/auth';
 import { getDatabase } from 'firebase/database';
 import { getStorage } from 'firebase/storage';
 
@@ -72,21 +72,46 @@ export const generateGuestName = () => {
   return `게스트${randomNum}`;
 };
 
-// Link anonymous account with Google account
+// Link anonymous account with Google account (optional upgrade)
 export const linkAnonymousWithGoogle = async (user: any) => {
-  if (!user || !user.isAnonymous) {
-    throw new Error('User is not anonymous');
+  // This is optional - users don't need to link accounts to use the app
+  if (!user) {
+    // If no user, just sign in with Google
+    const { signInWithPopup } = await import('firebase/auth');
+    const result = await signInWithPopup(auth, googleProvider);
+    return result.user;
+  }
+  
+  if (!user.isAnonymous) {
+    // Already has an account, no need to link
+    return user;
   }
   
   try {
-    const credential = GoogleAuthProvider.credential();
-    const result = await linkWithCredential(user, credential);
+    // Try to upgrade anonymous account to Google account
+    const { signInWithPopup, GoogleAuthProvider: GoogleAuthProviderImport, linkWithCredential: linkWithCred } = await import('firebase/auth');
+    const result = await signInWithPopup(auth, googleProvider);
+    const credential = GoogleAuthProviderImport.credentialFromResult(result);
+    
+    if (credential) {
+      try {
+        // Try to link if possible
+        const linkedResult = await linkWithCred(user, credential);
+        return linkedResult.user;
+      } catch (linkError: any) {
+        // If linking fails, just return the Google account
+        // The anonymous data might be lost, but user can still continue
+        if (linkError.code === 'auth/credential-already-in-use') {
+          return result.user;
+        }
+      }
+    }
+    
     return result.user;
   } catch (error: any) {
-    // If linking fails due to credential already in use, just sign in with Google
-    if (error.code === 'auth/credential-already-in-use') {
-      const { signInWithPopup } = await import('firebase/auth');
-      return signInWithPopup(auth, googleProvider);
+    // Don't block the user - let them continue as anonymous
+    if (error.code === 'auth/popup-closed-by-user') {
+      return user; // User cancelled, continue as anonymous
     }
     throw error;
   }

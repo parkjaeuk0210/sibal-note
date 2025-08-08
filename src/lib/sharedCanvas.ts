@@ -20,10 +20,12 @@ import {
 } from '../types/sharing';
 import { FirebaseNote, FirebaseImage, FirebaseFile } from '../types/firebase';
 
-// Generate unique token
+// Generate unique token with crypto-secure random
 const generateShareToken = () => {
-  return Math.random().toString(36).substring(2, 15) + 
-         Math.random().toString(36).substring(2, 15);
+  // Use crypto-secure random for token generation
+  const array = new Uint8Array(16);
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
 };
 
 // Generate unique color for participant

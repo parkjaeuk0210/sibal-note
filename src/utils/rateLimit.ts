@@ -52,7 +52,10 @@ class RateLimiter {
       // Try to get or create a persistent identifier
       let clientId = localStorage.getItem('_rl_client_id');
       if (!clientId) {
-        clientId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+        // Use crypto-secure random generation
+        const array = new Uint8Array(16);
+        crypto.getRandomValues(array);
+        clientId = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('') + '_' + Date.now().toString(36);
         localStorage.setItem('_rl_client_id', clientId);
       }
       factors.push(clientId);

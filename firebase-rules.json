@@ -8,8 +8,8 @@
     },
     "shared_canvases": {
       "$canvasId": {
-        ".read": "auth != null && (data.child('owner').val() === auth.uid || data.child('participants').child(auth.uid).exists())",
-        ".write": "auth != null && (data.child('owner').val() === auth.uid || (data.child('participants').child(auth.uid).child('role').val() === 'editor'))",
+        ".read": "data.child('isPublic').val() === true || (auth != null && (data.child('owner').val() === auth.uid || data.child('participants').child(auth.uid).exists()))",
+        ".write": "data.child('isPublic').val() === true || (auth != null && (data.child('owner').val() === auth.uid || (data.child('participants').child(auth.uid).child('role').val() === 'editor')))",
         "participants": {
           "$participantId": {
             ".write": "auth != null && (root.child('shared_canvases').child($canvasId).child('owner').val() === auth.uid || $participantId === auth.uid)"
@@ -40,7 +40,8 @@
     "share_tokens": {
       "$token": {
         ".read": true,
-        ".write": "auth != null && (!data.exists() || data.child('createdBy').val() === auth.uid)"
+        ".write": "!data.exists() || (auth != null && data.child('createdBy').val() === auth.uid)",
+        ".validate": "newData.hasChildren(['canvasId', 'createdBy', 'createdAt', 'permissions'])"
       }
     }
   }

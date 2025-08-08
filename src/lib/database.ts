@@ -16,7 +16,11 @@ import { FirebaseNote, FirebaseImage, FirebaseFile } from '../types/firebase';
 const getDeviceId = () => {
   let deviceId = localStorage.getItem('deviceId');
   if (!deviceId) {
-    deviceId = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Use crypto-secure random generation for device ID
+    const array = new Uint8Array(16);
+    crypto.getRandomValues(array);
+    const randomId = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    deviceId = `device_${Date.now()}_${randomId}`;
     localStorage.setItem('deviceId', deviceId);
   }
   return deviceId;

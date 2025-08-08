@@ -55,8 +55,13 @@ export const useNoteDrag = ({
       rafId.current = null;
     }
     
-    const finalX = e.target.x();
-    const finalY = e.target.y();
+    const node = e.target;
+    const finalX = node.x();
+    const finalY = node.y();
+    
+    // Important: Set the node position back to its initial position
+    // to prevent duplication when React re-renders with the new position
+    node.position({ x: note.x, y: note.y });
     
     updateNote(note.id, {
       x: finalX,
@@ -70,7 +75,7 @@ export const useNoteDrag = ({
     requestAnimationFrame(() => {
       dragEndFlag.current = false;
     });
-  }, [isDragging, updateNote, note.id, onDraggingChange]);
+  }, [isDragging, updateNote, note.id, note.x, note.y, onDraggingChange]);
 
   return {
     isDragging,

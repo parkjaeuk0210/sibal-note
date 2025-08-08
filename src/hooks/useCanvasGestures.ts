@@ -33,7 +33,11 @@ export const useCanvasGestures = ({
   const isMobileDevice = isMobile();
   
   // Store initial pinch state
-  const pinchStartRef = useRef<{ scale: number } | null>(null);
+  const pinchStartRef = useRef<{ 
+    scale: number;
+    center: { x: number; y: number };
+    initialDistance: number;
+  } | null>(null);
 
   useGesture(
     {
@@ -126,37 +130,47 @@ export const useCanvasGestures = ({
         setIsCanvasDragging(false);
       },
       
-      onPinchStart: () => {
+      onPinchStart: ({ origin: [cx, cy], offset: [distance] }) => {
         setIsPinching(true);
         setIsCanvasDragging(false);
         
-        // Store initial scale
+        // Store initial state with correct center
         pinchStartRef.current = {
-          scale: viewport.scale
+          scale: viewport.scale,
+          center: { x: cx, y: cy },
+          initialDistance: distance
         };
       },
       
-      onPinch: ({ offset: [distance], origin: [ox, oy], first, memo }) => {
-        // Simple direct scaling based on gesture distance
-        const scale = distance / 100; // Simple scaling factor
-        const newScale = Math.min(Math.max(0.1, scale), 5);
+      onPinch: ({ offset: [distance], origin: [cx, cy] }) => {
+        if (!pinchStartRef.current) {
+          // Initialize if not set
+          pinchStartRef.current = {
+            scale: viewport.scale,
+            center: { x: cx, y: cy },
+            initialDistance: distance
+          };
+        }
         
-        // Use the pinch center as the zoom focal point
-        const pointer = { x: ox, y: oy };
-        const oldScale = first ? viewport.scale : (memo?.scale || viewport.scale);
+        // Calculate scale based on distance change ratio
+        const distanceRatio = distance / pinchStartRef.current.initialDistance;
+        const newScale = Math.min(Math.max(0.1, pinchStartRef.current.scale * distanceRatio), 5);
         
-        const mousePointTo = {
-          x: (pointer.x - viewport.x) / oldScale,
-          y: (pointer.y - viewport.y) / oldScale,
+        // Use the current pinch center (it may move during gesture)
+        const pinchCenter = { x: cx, y: cy };
+        
+        // Calculate the point that should remain fixed during zoom
+        const fixedPoint = {
+          x: (pinchCenter.x - viewport.x) / viewport.scale,
+          y: (pinchCenter.y - viewport.y) / viewport.scale,
         };
 
+        // Calculate new viewport position to keep the fixed point in place
         updateViewportRAF({
           scale: newScale,
-          x: pointer.x - mousePointTo.x * newScale,
-          y: pointer.y - mousePointTo.y * newScale,
+          x: pinchCenter.x - fixedPoint.x * newScale,
+          y: pinchCenter.y - fixedPoint.y * newScale,
         });
-        
-        return { scale: newScale };
       },
       
       onPinchEnd: () => {
@@ -178,9 +192,8 @@ export const useCanvasGestures = ({
       },
       pinch: { 
         enabled: true,
-        from: () => [viewport.scale * 100, 0], // Start from current scale
+        from: () => [100, 0], // Start with a base value
         threshold: 0, // No threshold for immediate response
-        scaleBounds: { min: 10, max: 500 }, // Bounds in terms of distance
         rubberband: false,
       },
       wheel: {

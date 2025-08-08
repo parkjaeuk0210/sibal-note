@@ -1,4 +1,4 @@
-import { useState, RefObject } from 'react';
+import { useState, RefObject, useRef } from 'react';
 import { useGesture } from '@use-gesture/react';
 import Konva from 'konva';
 import { isMobile, isTrackpadEvent, getWheelGestureType } from '../utils/device';
@@ -31,6 +31,9 @@ export const useCanvasGestures = ({
   const [isCanvasDragging, setIsCanvasDragging] = useState(false);
   const [isPinching, setIsPinching] = useState(false);
   const isMobileDevice = isMobile();
+  
+  // Store initial pinch distance and center
+  const pinchStartRef = useRef<{ scale: number; center: { x: number; y: number } } | null>(null);
 
   useGesture(
     {
@@ -80,8 +83,11 @@ export const useCanvasGestures = ({
         }
       },
       
-      onDragStart: ({ event }) => {
+      onDragStart: ({ event, touches }) => {
         if (isAnyNoteResizing || isAnyNoteDragging) return;
+        
+        // Don't start drag if it's a multi-touch (pinch gesture)
+        if (touches && touches > 1) return;
         
         const target = event.target as HTMLElement;
         if (target.tagName === 'CANVAS') {
@@ -98,9 +104,10 @@ export const useCanvasGestures = ({
         }
       },
       
-      onDrag: ({ delta: [dx, dy], pinching, event }) => {
-        // Don't handle drag if pinching
+      onDrag: ({ delta: [dx, dy], pinching, event, touches }) => {
+        // Don't handle drag if pinching or multi-touch
         if (pinching || !isCanvasDragging || isAnyNoteResizing || isAnyNoteDragging) return;
+        if (touches && touches > 1) return;
         
         const target = event.target as HTMLElement;
         if (target.tagName !== 'CANVAS') {
@@ -119,21 +126,32 @@ export const useCanvasGestures = ({
         setIsCanvasDragging(false);
       },
       
-      onPinchStart: () => {
+      onPinchStart: ({ origin: [ox, oy] }) => {
         setIsPinching(true);
-        setIsCanvasDragging(false); // Stop dragging when pinch starts
+        setIsCanvasDragging(false);
+        
+        // Store initial state for pinch
+        pinchStartRef.current = {
+          scale: viewport.scale,
+          center: { x: ox, y: oy }
+        };
       },
       
-      onPinch: ({ offset: [scale], origin: [ox, oy] }) => {
-        const newScale = Math.min(Math.max(0.1, scale / 200), 5);
-        const stage = stageRef.current;
-        if (!stage) return;
-
-        // Calculate zoom focal point
+      onPinch: ({ offset: [distance], origin: [ox, oy], memo }) => {
+        if (!pinchStartRef.current) return;
+        
+        // Calculate scale based on pinch distance
+        // Use a more intuitive scaling factor
+        const scaleFactor = distance / 100; // Adjust base distance for better feel
+        const newScale = Math.min(Math.max(0.1, scaleFactor), 5);
+        
+        // Use the pinch center as the zoom focal point
         const pointer = { x: ox, y: oy };
+        const oldScale = viewport.scale;
+        
         const mousePointTo = {
-          x: (pointer.x - viewport.x) / viewport.scale,
-          y: (pointer.y - viewport.y) / viewport.scale,
+          x: (pointer.x - viewport.x) / oldScale,
+          y: (pointer.y - viewport.y) / oldScale,
         };
 
         updateViewportRAF({
@@ -141,10 +159,13 @@ export const useCanvasGestures = ({
           x: pointer.x - mousePointTo.x * newScale,
           y: pointer.y - mousePointTo.y * newScale,
         });
+        
+        return memo;
       },
       
       onPinchEnd: () => {
         setIsPinching(false);
+        pinchStartRef.current = null;
       },
     },
     {
@@ -152,19 +173,19 @@ export const useCanvasGestures = ({
       drag: { 
         filterTaps: true,
         from: () => [viewport.x, viewport.y],
-        enabled: !isAnyNoteResizing && !isAnyNoteDragging,
+        enabled: !isAnyNoteResizing && !isAnyNoteDragging && !isPinching,
         threshold: isMobileDevice ? 10 : 5,
         pointer: { 
           touch: true, 
           mouse: true,
-          // Only allow single touch for drag (not multi-touch)
-          keys: false
         },
       },
       pinch: { 
-        from: () => [viewport.scale * 200, 0],
+        enabled: true,
+        from: () => [viewport.scale * 100, 0], // Start from current scale
+        threshold: 10,
         scaleBounds: { min: 0.1, max: 5 },
-        rubberband: true,
+        rubberband: false, // Disable rubberband for more direct control
       },
       wheel: {
         preventDefault: true,

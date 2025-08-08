@@ -12,8 +12,17 @@ import {
 import { database } from './firebase';
 import { FirebaseNote, FirebaseImage, FirebaseFile } from '../types/firebase';
 
-// Get device ID (stored in localStorage)
+// Cache device ID in memory to avoid repeated localStorage access
+let cachedDeviceId: string | null = null;
+
+// Get device ID (stored in localStorage and cached in memory)
 const getDeviceId = () => {
+  // Return cached value if available
+  if (cachedDeviceId) {
+    return cachedDeviceId;
+  }
+  
+  // Try to get from localStorage
   let deviceId = localStorage.getItem('deviceId');
   if (!deviceId) {
     // Use crypto-secure random generation for device ID
@@ -23,6 +32,9 @@ const getDeviceId = () => {
     deviceId = `device_${Date.now()}_${randomId}`;
     localStorage.setItem('deviceId', deviceId);
   }
+  
+  // Cache the device ID
+  cachedDeviceId = deviceId;
   return deviceId;
 };
 
@@ -52,7 +64,7 @@ export const updateNote = async (userId: string, noteId: string, updates: Partia
   await update(noteRef, {
     ...updates,
     updatedAt: Date.now(),
-    deviceId: getDeviceId(),
+    // Don't update deviceId on every update to avoid triggering sync loops
   });
 };
 
@@ -79,7 +91,7 @@ export const updateImage = async (userId: string, imageId: string, updates: Part
   const imageRef = ref(database, `${getImagesPath(userId)}/${imageId}`);
   await update(imageRef, {
     ...updates,
-    deviceId: getDeviceId(),
+    // Don't update deviceId on every update to avoid triggering sync loops
   });
 };
 
@@ -106,7 +118,7 @@ export const updateFile = async (userId: string, fileId: string, updates: Partia
   const fileRef = ref(database, `${getFilesPath(userId)}/${fileId}`);
   await update(fileRef, {
     ...updates,
-    deviceId: getDeviceId(),
+    // Don't update deviceId on every update to avoid triggering sync loops
   });
 };
 

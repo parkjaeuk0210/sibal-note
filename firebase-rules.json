@@ -16,11 +16,14 @@
           }
         },
         "notes": {
+          ".validate": "newData.hasChildren() && newData.children().count() <= 100",
           "$noteId": {
-            ".write": "auth != null && (root.child('shared_canvases').child($canvasId).child('participants').child(auth.uid).child('role').val() === 'editor' || root.child('shared_canvases').child($canvasId).child('owner').val() === auth.uid)"
+            ".write": "auth != null && (root.child('shared_canvases').child($canvasId).child('participants').child(auth.uid).child('role').val() === 'editor' || root.child('shared_canvases').child($canvasId).child('owner').val() === auth.uid)",
+            ".validate": "newData.hasChildren(['content', 'x', 'y', 'width', 'height', 'color', 'createdAt', 'userId'])"
           }
         },
         "images": {
+          ".validate": "newData.hasChildren() && newData.children().count() <= 50",
           "$imageId": {
             ".write": "auth != null && (root.child('shared_canvases').child($canvasId).child('participants').child(auth.uid).child('role').val() === 'editor' || root.child('shared_canvases').child($canvasId).child('owner').val() === auth.uid)"
           }

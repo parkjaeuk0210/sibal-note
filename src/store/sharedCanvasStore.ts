@@ -295,10 +295,30 @@ export const useSharedCanvasStore = create<SharedCanvasStore>()(
 
       // Note actions
       addNote: (x: number, y: number) => {
-        const { canvasId, userRole } = get();
+        const { canvasId, userRole, notes } = get();
         const user = auth.currentUser;
         
         if (!canvasId || !user || userRole !== 'editor') return;
+        
+        // Prevent spam: Limit total notes on canvas
+        const MAX_NOTES_PER_CANVAS = 100;
+        if (notes.length >= MAX_NOTES_PER_CANVAS) {
+          alert(`최대 ${MAX_NOTES_PER_CANVAS}개의 메모만 생성할 수 있습니다.`);
+          return;
+        }
+        
+        // Check notes created by this user in last minute (rate limiting)
+        const oneMinuteAgo = Date.now() - 60000;
+        const recentUserNotes = notes.filter(n => 
+          // Note type doesn't have userId, so check by creation time only
+          n.createdAt.getTime() > oneMinuteAgo
+        );
+        
+        const MAX_NOTES_PER_MINUTE = 10;
+        if (recentUserNotes.length >= MAX_NOTES_PER_MINUTE) {
+          alert(`1분에 최대 ${MAX_NOTES_PER_MINUTE}개의 메모만 생성할 수 있습니다. 잠시 후 다시 시도해주세요.`);
+          return;
+        }
 
         const state = get();
         const maxZIndex = Math.max(...state.notes.map(n => n.zIndex || 0), 0);
@@ -377,10 +397,17 @@ export const useSharedCanvasStore = create<SharedCanvasStore>()(
 
       // Image actions
       addImage: (image: Omit<CanvasImage, 'id' | 'createdAt'>) => {
-        const { canvasId, userRole } = get();
+        const { canvasId, userRole, images } = get();
         const user = auth.currentUser;
         
         if (!canvasId || !user || userRole !== 'editor') return;
+        
+        // Prevent spam: Limit total images on canvas
+        const MAX_IMAGES_PER_CANVAS = 50;
+        if (images.length >= MAX_IMAGES_PER_CANVAS) {
+          alert(`최대 ${MAX_IMAGES_PER_CANVAS}개의 이미지만 추가할 수 있습니다.`);
+          return;
+        }
 
         const firebaseImage: Omit<FirebaseImage, 'id' | 'userId' | 'deviceId'> = {
           url: image.url,

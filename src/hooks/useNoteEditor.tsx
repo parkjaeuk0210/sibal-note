@@ -60,6 +60,7 @@ const EditorPortal = ({ note, stageScale, position, onSave, onClose }: EditorPor
     >
       <textarea
         ref={textareaRef}
+        className={isDarkMode ? 'dark-mode-textarea' : ''}
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
@@ -82,7 +83,9 @@ const EditorPortal = ({ note, stageScale, position, onSave, onClose }: EditorPor
           lineHeight: `${LINE_HEIGHT}`,
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif',
           color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.85)',
-        }}
+          // Force text color in WebKit browsers
+          WebkitTextFillColor: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.85)',
+        } as React.CSSProperties}
       />
     </div>,
     document.body

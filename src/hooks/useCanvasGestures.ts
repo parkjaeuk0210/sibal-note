@@ -32,8 +32,8 @@ export const useCanvasGestures = ({
   const [isPinching, setIsPinching] = useState(false);
   const isMobileDevice = isMobile();
   
-  // Store initial pinch distance and center
-  const pinchStartRef = useRef<{ scale: number; center: { x: number; y: number } } | null>(null);
+  // Store initial pinch state
+  const pinchStartRef = useRef<{ scale: number } | null>(null);
 
   useGesture(
     {
@@ -72,8 +72,8 @@ export const useCanvasGestures = ({
         } else {
           // Pan behavior (2-finger trackpad scroll or shift+wheel)
           const panSpeed = isTrackpad ? 1 : 2;
-          // Correct scroll direction
-          const scrollDirection = 1; // Keep it simple - same direction for all platforms
+          // Fix: Invert scroll direction for trackpad
+          const scrollDirection = -1; // Inverted for natural scrolling feel
           
           setViewport({
             ...viewport,
@@ -126,24 +126,24 @@ export const useCanvasGestures = ({
         setIsCanvasDragging(false);
       },
       
-      onPinchStart: ({ origin: [ox, oy] }) => {
+      onPinchStart: () => {
         setIsPinching(true);
         setIsCanvasDragging(false);
         
-        // Store initial state for pinch
+        // Store initial scale
         pinchStartRef.current = {
-          scale: viewport.scale,
-          center: { x: ox, y: oy }
+          scale: viewport.scale
         };
       },
       
       onPinch: ({ offset: [distance], origin: [ox, oy], memo }) => {
         if (!pinchStartRef.current) return;
         
-        // Calculate scale based on pinch distance
-        // Use a more intuitive scaling factor
-        const scaleFactor = distance / 100; // Adjust base distance for better feel
-        const newScale = Math.min(Math.max(0.1, scaleFactor), 5);
+        // Calculate scale relative to initial scale
+        // The distance from @use-gesture is already normalized
+        // We need to apply it relative to the starting scale
+        const scaleMultiplier = distance / 200; // 200 is the base value we set in 'from'
+        const newScale = Math.min(Math.max(0.1, pinchStartRef.current.scale * scaleMultiplier), 5);
         
         // Use the pinch center as the zoom focal point
         const pointer = { x: ox, y: oy };
@@ -182,10 +182,10 @@ export const useCanvasGestures = ({
       },
       pinch: { 
         enabled: true,
-        from: () => [viewport.scale * 100, 0], // Start from current scale
+        from: () => [200, 0], // Fixed starting point for consistent scaling
         threshold: 10,
-        scaleBounds: { min: 0.1, max: 5 },
-        rubberband: false, // Disable rubberband for more direct control
+        scaleBounds: { min: 50, max: 1000 }, // Bounds in terms of distance
+        rubberband: false,
       },
       wheel: {
         preventDefault: true,

@@ -206,15 +206,11 @@ export const joinSharedCanvas = async (
   const currentParticipants = canvasData.participants || {};
   const participantCount = Object.keys(currentParticipants).length;
   
-  // Check participant limit (auto-upgrade old 2-person limit to 10)
+  // Check participant limit (treat old 2-person limit as 10)
   const storedLimit = canvasData.shareSettings?.maxParticipants;
+  // Automatically treat any canvas with old 2-person limit as 10
+  // Don't update Firebase as new users don't have permission yet
   const maxParticipants = (storedLimit === 2) ? 10 : (storedLimit || 10);
-  
-  // If old limit was upgraded, update it in Firebase
-  if (storedLimit === 2) {
-    const settingsRef = ref(database, `${getSharedCanvasPath(tokenData.canvasId)}/shareSettings/maxParticipants`);
-    await set(settingsRef, 10);
-  }
   
   if (participantCount >= maxParticipants) {
     throw new Error(`이 캔버스는 최대 ${maxParticipants}명까지만 참여할 수 있습니다.`);

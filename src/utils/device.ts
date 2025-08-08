@@ -17,6 +17,42 @@ export const isTouch = (): boolean => {
   return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 };
 
+// Detect if the user is on macOS
+export const isMacOS = (): boolean => {
+  return navigator.platform.toUpperCase().indexOf('MAC') >= 0 || 
+         navigator.userAgent.toUpperCase().indexOf('MAC') >= 0;
+};
+
+// Detect if wheel event is from a trackpad
+export const isTrackpadEvent = (event: WheelEvent): boolean => {
+  // Check for precise scrolling (common on trackpads)
+  if (event.deltaMode === 0) {
+    // Pixel scrolling mode (trackpads use this)
+    const isPrecise = Math.abs(event.deltaY) < 50 && event.deltaY !== 0;
+    
+    // Check for fractional delta values (trackpads often have these)
+    const hasFractionalDelta = event.deltaY % 1 !== 0 || event.deltaX % 1 !== 0;
+    
+    // Trackpads often have both X and Y deltas
+    const hasBothDeltas = event.deltaX !== 0 && event.deltaY !== 0;
+    
+    return isPrecise || hasFractionalDelta || hasBothDeltas;
+  }
+  
+  return false;
+};
+
+// Detect gesture type from wheel event
+export const getWheelGestureType = (event: WheelEvent): 'zoom' | 'pan' => {
+  // Pinch-to-zoom on trackpad (ctrl key on Windows/Linux, metaKey on macOS)
+  if (event.ctrlKey || event.metaKey) {
+    return 'zoom';
+  }
+  
+  // Regular scroll is pan
+  return 'pan';
+};
+
 // Performance mode based on device
 export const getPerformanceMode = (): 'high' | 'medium' | 'low' => {
   if (!isMobile()) return 'high';

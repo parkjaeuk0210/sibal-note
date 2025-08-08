@@ -206,8 +206,16 @@ export const joinSharedCanvas = async (
   const currentParticipants = canvasData.participants || {};
   const participantCount = Object.keys(currentParticipants).length;
   
-  // Check participant limit
-  const maxParticipants = canvasData.shareSettings?.maxParticipants || 10;
+  // Check participant limit (auto-upgrade old 2-person limit to 10)
+  const storedLimit = canvasData.shareSettings?.maxParticipants;
+  const maxParticipants = (storedLimit === 2) ? 10 : (storedLimit || 10);
+  
+  // If old limit was upgraded, update it in Firebase
+  if (storedLimit === 2) {
+    const settingsRef = ref(database, `${getSharedCanvasPath(tokenData.canvasId)}/shareSettings/maxParticipants`);
+    await set(settingsRef, 10);
+  }
+  
   if (participantCount >= maxParticipants) {
     throw new Error(`이 캔버스는 최대 ${maxParticipants}명까지만 참여할 수 있습니다.`);
   }
@@ -557,4 +565,31 @@ export const leaveSharedCanvas = async (userId: string, canvasId: string) => {
   // Remove from user's canvas list
   const userCanvasRef = ref(database, `${getUserSharedCanvasesPath(userId)}/${canvasId}`);
   await remove(userCanvasRef);
+};
+
+// Update canvas participant limit (for canvas owners)
+export const updateCanvasParticipantLimit = async (
+  canvasId: string,
+  userId: string,
+  newLimit: number
+) => {
+  // Verify the canvas exists
+  const canvasRef = ref(database, getSharedCanvasPath(canvasId));
+  const canvasSnapshot: DataSnapshot = await new Promise((resolve) => {
+    onValue(canvasRef, resolve, { onlyOnce: true });
+  });
+  
+  const canvasData = canvasSnapshot.val() as SharedCanvas;
+  if (!canvasData) {
+    throw new Error('캔버스를 찾을 수 없습니다.');
+  }
+  
+  // Check if user is the owner
+  if (canvasData.owner !== userId) {
+    throw new Error('캔버스 소유자만 참여자 제한을 변경할 수 있습니다.');
+  }
+  
+  // Update the participant limit
+  const settingsRef = ref(database, `${getSharedCanvasPath(canvasId)}/shareSettings/maxParticipants`);
+  await set(settingsRef, newLimit);
 };

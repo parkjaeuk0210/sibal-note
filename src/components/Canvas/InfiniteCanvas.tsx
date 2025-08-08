@@ -96,6 +96,18 @@ export const InfiniteCanvas = React.memo(() => {
     return cleanup;
   }, [cleanup]);
 
+  // Prevent Safari's default pinch zoom
+  useEffect(() => {
+    const preventDefault = (e: Event) => e.preventDefault();
+    document.addEventListener('gesturestart', preventDefault);
+    document.addEventListener('gesturechange', preventDefault);
+    
+    return () => {
+      document.removeEventListener('gesturestart', preventDefault);
+      document.removeEventListener('gesturechange', preventDefault);
+    };
+  }, []);
+
   // Canvas click handlers
   const { handleStageClick, handleStageDoubleClick } = useCanvasHandlers({
     stageRef,

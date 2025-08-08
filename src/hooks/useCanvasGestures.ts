@@ -136,18 +136,14 @@ export const useCanvasGestures = ({
         };
       },
       
-      onPinch: ({ offset: [distance], origin: [ox, oy], memo }) => {
-        if (!pinchStartRef.current) return;
-        
-        // Calculate scale relative to initial scale
-        // The distance from @use-gesture is already normalized
-        // We need to apply it relative to the starting scale
-        const scaleMultiplier = distance / 200; // 200 is the base value we set in 'from'
-        const newScale = Math.min(Math.max(0.1, pinchStartRef.current.scale * scaleMultiplier), 5);
+      onPinch: ({ offset: [distance], origin: [ox, oy], first, memo }) => {
+        // Simple direct scaling based on gesture distance
+        const scale = distance / 100; // Simple scaling factor
+        const newScale = Math.min(Math.max(0.1, scale), 5);
         
         // Use the pinch center as the zoom focal point
         const pointer = { x: ox, y: oy };
-        const oldScale = viewport.scale;
+        const oldScale = first ? viewport.scale : (memo?.scale || viewport.scale);
         
         const mousePointTo = {
           x: (pointer.x - viewport.x) / oldScale,
@@ -160,7 +156,7 @@ export const useCanvasGestures = ({
           y: pointer.y - mousePointTo.y * newScale,
         });
         
-        return memo;
+        return { scale: newScale };
       },
       
       onPinchEnd: () => {
@@ -182,9 +178,9 @@ export const useCanvasGestures = ({
       },
       pinch: { 
         enabled: true,
-        from: () => [200, 0], // Fixed starting point for consistent scaling
-        threshold: 10,
-        scaleBounds: { min: 50, max: 1000 }, // Bounds in terms of distance
+        from: () => [viewport.scale * 100, 0], // Start from current scale
+        threshold: 0, // No threshold for immediate response
+        scaleBounds: { min: 10, max: 500 }, // Bounds in terms of distance
         rubberband: false,
       },
       wheel: {

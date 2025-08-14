@@ -1,6 +1,26 @@
 import { StateCreator } from 'zustand';
 import { useHistoryStore } from '../historyStore';
 
+// Deep clone helper that preserves Date instances
+function deepClone<T>(value: T): T {
+  if (value instanceof Date) {
+    return new Date(value.getTime()) as unknown as T;
+  }
+  if (Array.isArray(value)) {
+    // @ts-ignore - map preserves type adequately for our usage
+    return value.map((v) => deepClone(v)) as unknown as T;
+  }
+  if (value && typeof value === 'object') {
+    const result: Record<string, any> = {};
+    for (const key of Object.keys(value as Record<string, any>)) {
+      // @ts-ignore - index access is safe here
+      result[key] = deepClone((value as Record<string, any>)[key]);
+    }
+    return result as unknown as T;
+  }
+  return value;
+}
+
 type UndoableOptions = {
   limit?: number;
 };
@@ -43,16 +63,17 @@ const undoableImpl: Undoable = (initializer, options = {}) => {
       
       if (shouldTrack && !isStateEqual(prevState, nextState)) {
         // Only save the parts we care about for undo/redo
+        // Deep clone to avoid future mutations leaking into history snapshots
         const snapshot = {
-          notes: (nextState as any).notes,
-          images: (nextState as any).images,
-          files: (nextState as any).files,
-          viewport: (nextState as any).viewport || { x: 0, y: 0, scale: 1 },
+          notes: deepClone((nextState as any).notes),
+          images: deepClone((nextState as any).images),
+          files: deepClone((nextState as any).files),
+          viewport: deepClone((nextState as any).viewport || { x: 0, y: 0, scale: 1 }),
           selectedNoteId: (nextState as any).selectedNoteId || null,
           selectedImageId: (nextState as any).selectedImageId || null,
           selectedFileId: (nextState as any).selectedFileId || null,
         };
-        
+
         historyStore.pushState(snapshot, limit);
       }
     };

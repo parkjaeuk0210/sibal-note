@@ -83,14 +83,44 @@ const undoableImpl: Undoable = (initializer, options = {}) => {
       if (previousState) {
         isUndoingOrRedoing = true;
         const currentState = get() as any;
+
         // Merge with current state to preserve viewport and other required properties
         const mergedState = {
           ...currentState,
           ...previousState,
-          // Ensure viewport always exists
           viewport: previousState.viewport || currentState.viewport || { x: 0, y: 0, scale: 1 },
         };
         set(mergedState, true);
+
+        // If this is a remotely-synced store (firebase/shared), also sync changed notes to backend
+        try {
+          const stateAfter = get() as any;
+          const isFirebase = typeof (stateAfter as any).initializeFirebaseSync === 'function';
+          const isShared = typeof (stateAfter as any).joinCanvas === 'function' || 'canvasId' in (stateAfter as any);
+          if (isFirebase || isShared) {
+            const prevNotes: any[] = (previousState as any).notes || [];
+            const currNotes: any[] = (currentState as any).notes || [];
+            const currById = new Map(currNotes.map((n) => [n.id, n]));
+            for (const pn of prevNotes) {
+              const cn = currById.get(pn.id);
+              if (!cn) continue;
+              const updates: Record<string, any> = {};
+              if (pn.content !== cn.content) updates.content = pn.content;
+              if (pn.x !== cn.x) updates.x = pn.x;
+              if (pn.y !== cn.y) updates.y = pn.y;
+              if (pn.width !== cn.width) updates.width = pn.width;
+              if (pn.height !== cn.height) updates.height = pn.height;
+              if (pn.color !== cn.color) updates.color = pn.color;
+              if (Object.keys(updates).length > 0 && typeof (stateAfter as any).updateNote === 'function') {
+                // Avoid recording history during backend sync
+                (stateAfter as any).updateNote(pn.id, updates);
+              }
+            }
+          }
+        } finally {
+          // done
+        }
+
         isUndoingOrRedoing = false;
       }
     };
@@ -104,10 +134,38 @@ const undoableImpl: Undoable = (initializer, options = {}) => {
         const mergedState = {
           ...currentState,
           ...nextState,
-          // Ensure viewport always exists
           viewport: nextState.viewport || currentState.viewport || { x: 0, y: 0, scale: 1 },
         };
         set(mergedState, true);
+
+        // Sync to backend for remote stores similar to undo()
+        try {
+          const stateAfter = get() as any;
+          const isFirebase = typeof (stateAfter as any).initializeFirebaseSync === 'function';
+          const isShared = typeof (stateAfter as any).joinCanvas === 'function' || 'canvasId' in (stateAfter as any);
+          if (isFirebase || isShared) {
+            const targetNotes: any[] = (nextState as any).notes || [];
+            const currNotes: any[] = (currentState as any).notes || [];
+            const currById = new Map(currNotes.map((n) => [n.id, n]));
+            for (const tn of targetNotes) {
+              const cn = currById.get(tn.id);
+              if (!cn) continue;
+              const updates: Record<string, any> = {};
+              if (tn.content !== cn.content) updates.content = tn.content;
+              if (tn.x !== cn.x) updates.x = tn.x;
+              if (tn.y !== cn.y) updates.y = tn.y;
+              if (tn.width !== cn.width) updates.width = tn.width;
+              if (tn.height !== cn.height) updates.height = tn.height;
+              if (tn.color !== cn.color) updates.color = tn.color;
+              if (Object.keys(updates).length > 0 && typeof (stateAfter as any).updateNote === 'function') {
+                (stateAfter as any).updateNote(tn.id, updates);
+              }
+            }
+          }
+        } finally {
+          // done
+        }
+
         isUndoingOrRedoing = false;
       }
     };

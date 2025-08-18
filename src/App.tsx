@@ -14,7 +14,6 @@ import { CanvasList } from './components/Canvas/CanvasList';
 import { useAuth } from './contexts/AuthContext';
 import { useAppStore, useStoreMode } from './contexts/StoreProvider';
 import { useSharedCanvasStore } from './store/sharedCanvasStore';
-import { useFirebaseCanvasStore } from './store/firebaseCanvasStore';
 import { useHistoryStore } from './store/historyStore';
 import './styles/glassmorphism.css';
 import './styles/dark-mode.css';
@@ -83,9 +82,6 @@ function App() {
   // and sign in when they want using the Sign In button
 
   // Gate rendering only while auth is loading (not for Firebase data)
-  const isLoggedIn = !!user && !user.isAnonymous;
-  const isFirebaseMode = isLoggedIn && !isSharedMode;
-  
   // Only show loading screen while authentication is being determined
   if (loading) {
     return (

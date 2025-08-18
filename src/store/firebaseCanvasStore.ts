@@ -465,8 +465,8 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
 
     const unsubscribers: (() => void)[] = [];
 
-    // Reset readiness flags
-    set({ notesReady: false, imagesReady: false, filesReady: false, settingsReady: false, remoteReady: false });
+    // Reset readiness flags (preserve remoteReady so cached UI can stay visible)
+    set({ notesReady: false, imagesReady: false, filesReady: false, settingsReady: false });
 
     // Load cached remote snapshot for immediate UX (if present)
     try {
@@ -515,6 +515,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
               isDarkMode: next.isDarkMode,
             };
             localStorage.setItem(`remoteCache:${userId}`, JSON.stringify(cache));
+            localStorage.setItem('remoteCache:lastUserId', userId);
           } catch {}
           const remoteReady = next.notesReady && next.imagesReady && next.filesReady && next.settingsReady;
           return { ...next, remoteReady };
@@ -541,6 +542,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
               isDarkMode: next.isDarkMode,
             };
             localStorage.setItem(`remoteCache:${userId}`, JSON.stringify(cache));
+            localStorage.setItem('remoteCache:lastUserId', userId);
           } catch {}
           const remoteReady = next.notesReady && next.imagesReady && next.filesReady && next.settingsReady;
           return { ...next, remoteReady };
@@ -567,6 +569,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
               isDarkMode: next.isDarkMode,
             };
             localStorage.setItem(`remoteCache:${userId}`, JSON.stringify(cache));
+            localStorage.setItem('remoteCache:lastUserId', userId);
           } catch {}
           const remoteReady = next.notesReady && next.imagesReady && next.filesReady && next.settingsReady;
           return { ...next, remoteReady };
@@ -590,6 +593,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
                 isDarkMode: next.isDarkMode,
               };
               localStorage.setItem(`remoteCache:${userId}`, JSON.stringify(cache));
+              localStorage.setItem('remoteCache:lastUserId', userId);
             } catch {}
             const remoteReady = next.notesReady && next.imagesReady && next.filesReady && next.settingsReady;
             return { ...next, remoteReady };

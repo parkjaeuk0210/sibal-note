@@ -16,9 +16,41 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const firebaseStore = useFirebaseCanvasStore();
   const sharedStore = useSharedCanvasStore();
   const [isSharedMode, setIsSharedMode] = useState(false);
+  const hasRemoteCache = useFirebaseCanvasStore((s) => s.remoteReady);
   
-  // Use Firebase mode if user is logged in and not anonymous
-  const isFirebaseMode = !loading && !!user && !user.isAnonymous && !isSharedMode;
+  // Preload cached remote snapshot ASAP (before auth resolves) to avoid spinner
+  useEffect(() => {
+    try {
+      const lastUid = localStorage.getItem('remoteCache:lastUserId');
+      if (!lastUid) return;
+      const cachedRaw = localStorage.getItem(`remoteCache:${lastUid}`);
+      if (!cachedRaw) return;
+      const parsed = JSON.parse(cachedRaw);
+      const cachedNotes = Array.isArray(parsed.notes)
+        ? parsed.notes.map((n: any) => ({ ...n, createdAt: new Date(n.createdAt), updatedAt: new Date(n.updatedAt) }))
+        : [];
+      const cachedImages = Array.isArray(parsed.images)
+        ? parsed.images.map((img: any) => ({ ...img, createdAt: new Date(img.createdAt) }))
+        : [];
+      const cachedFiles = Array.isArray(parsed.files)
+        ? parsed.files.map((f: any) => ({ ...f, createdAt: new Date(f.createdAt) }))
+        : [];
+      const cachedDark = typeof parsed.isDarkMode === 'boolean' ? parsed.isDarkMode : undefined;
+      // Set directly into firebase store so UI can render immediately
+      useFirebaseCanvasStore.setState({
+        notes: cachedNotes,
+        images: cachedImages,
+        files: cachedFiles,
+        ...(cachedDark !== undefined ? { isDarkMode: cachedDark } : {}),
+        remoteReady: true,
+      } as Partial<FirebaseCanvasStore>);
+    } catch (e) {
+      // no-op
+    }
+  }, []);
+
+  // Use Firebase mode if logged in OR we have a cached remote (not in shared mode)
+  const isFirebaseMode = (!loading && !!user && !user.isAnonymous && !isSharedMode) || (hasRemoteCache && !isSharedMode);
 
   // Check if we're in shared canvas mode
   useEffect(() => {

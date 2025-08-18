@@ -21,10 +21,9 @@ import './styles/dark-mode.css';
 
 function App() {
   const { user } = useAuth();
-  const { isSharedMode } = useStoreMode();
+  const { isSharedMode, isFirebaseMode } = useStoreMode();
   const { canvasInfo } = useSharedCanvasStore();
   const remoteReady = useFirebaseCanvasStore((s) => s.remoteReady);
-  const { loading } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showCanvasList, setShowCanvasList] = useState(false);
   const [showCollaborators, setShowCollaborators] = useState(true); // Show by default in shared mode
@@ -83,10 +82,9 @@ function App() {
   // Removed automatic login modal - users can now use the app freely
   // and sign in when they want using the Sign In button
 
-  // Gate rendering while auth loads or remote snapshot not ready
-  const isLoggedIn = !!user && !user.isAnonymous;
-  const isFirebaseMode = isLoggedIn && !isSharedMode;
-  const shouldGate = loading || (isFirebaseMode && !remoteReady);
+  // Gate rendering only if we are in firebase mode without remote data ready.
+  // If cached remote exists, remoteReady will be true and we skip the gate even while auth resolves.
+  const shouldGate = isFirebaseMode && !remoteReady;
 
   if (shouldGate) {
     return (

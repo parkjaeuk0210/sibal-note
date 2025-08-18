@@ -19,6 +19,7 @@ import {
 import { Note, CanvasImage, CanvasFile, Viewport, NoteColor } from '../types';
 import { FirebaseNote, FirebaseImage, FirebaseFile } from '../types/firebase';
 import { auth } from '../lib/firebase';
+import { migrationManager } from '../lib/migrationManager';
 
 export interface FirebaseCanvasStore {
   // Local state (same as before)
@@ -524,7 +525,12 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
 
     // Subscribe to images
     unsubscribers.push(
-      subscribeToImages(userId, (firebaseImages) => {
+      subscribeToImages(userId, async (firebaseImages) => {
+        // Trigger migration for base64 images
+        migrationManager.migrateImages(userId, firebaseImages).catch(err => {
+          console.error('Image migration error:', err);
+        });
+        
         const images = Object.entries(firebaseImages).map(([id, image]) => ({
           ...firebaseImageToLocal(image),
           id,
@@ -550,7 +556,12 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
 
     // Subscribe to files
     unsubscribers.push(
-      subscribeToFiles(userId, (firebaseFiles) => {
+      subscribeToFiles(userId, async (firebaseFiles) => {
+        // Trigger migration for base64 files
+        migrationManager.migrateFiles(userId, firebaseFiles).catch(err => {
+          console.error('File migration error:', err);
+        });
+        
         const files = Object.entries(firebaseFiles).map(([id, file]) => ({
           ...firebaseFileToLocal(file),
           id,

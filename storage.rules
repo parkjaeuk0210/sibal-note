@@ -1,0 +1,36 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow users to read/write their own files
+    match /images/{userId}/{imageId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId
+        && request.resource.size < 10 * 1024 * 1024 // 10MB limit per image
+        && request.resource.contentType.matches('image/.*');
+    }
+    
+    match /files/{userId}/{fileId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId
+        && request.resource.size < 50 * 1024 * 1024; // 50MB limit per file
+    }
+    
+    // Allow anonymous users to access their own files
+    match /images/{userId}/{imageId} {
+      allow read, write: if request.auth != null && request.auth.token.firebase.sign_in_provider == 'anonymous'
+        && request.auth.uid == userId
+        && request.resource.size < 5 * 1024 * 1024; // 5MB limit for anonymous users
+    }
+    
+    match /files/{userId}/{fileId} {
+      allow read, write: if request.auth != null && request.auth.token.firebase.sign_in_provider == 'anonymous'
+        && request.auth.uid == userId
+        && request.resource.size < 10 * 1024 * 1024; // 10MB limit for anonymous users
+    }
+    
+    // Default: deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

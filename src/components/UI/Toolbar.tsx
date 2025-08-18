@@ -246,7 +246,7 @@ export const Toolbar = ({ isSharedMode, showCollaborators, onToggleCollaborators
             
             <button
               onClick={handleDelete}
-              className="glass-button rounded-full p-3 hover:scale-105 transition-transform text-white"
+              className="glass-button rounded-full p-3 hover:scale-105 transition-transform text-gray-700 dark:text-white"
               title="메모 삭제"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,7 +262,7 @@ export const Toolbar = ({ isSharedMode, showCollaborators, onToggleCollaborators
             
             <button
               onClick={handleDelete}
-              className="glass-button rounded-full p-3 hover:scale-105 transition-transform text-white"
+              className="glass-button rounded-full p-3 hover:scale-105 transition-transform text-gray-700 dark:text-white"
               title="삭제"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

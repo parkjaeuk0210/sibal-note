@@ -260,7 +260,6 @@ export const useCanvasStore = create<CanvasStore>()(
     ),
     {
       name: 'interectnote-storage',
-      skipHydration: true,
     }
   )
 );

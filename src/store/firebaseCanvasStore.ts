@@ -119,44 +119,16 @@ const firebaseFileToLocal = (firebaseFile: FirebaseFile): CanvasFile => ({
 
 export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   undoable(
-    (set, get) => {
-  // Prepare initial state from cached remote snapshot synchronously (before first paint)
-  let initialNotes: Note[] = [];
-  let initialImages: CanvasImage[] = [];
-  let initialFiles: CanvasFile[] = [];
-  let initialDark = false;
-  let initialRemoteReady = false;
-  try {
-    const lastUid = localStorage.getItem('remoteCache:lastUserId');
-    if (lastUid) {
-      const cachedRaw = localStorage.getItem(`remoteCache:${lastUid}`);
-      if (cachedRaw) {
-        const parsed = JSON.parse(cachedRaw);
-        initialNotes = Array.isArray(parsed.notes)
-          ? parsed.notes.map((n: any) => ({ ...n, createdAt: new Date(n.createdAt), updatedAt: new Date(n.updatedAt) }))
-          : [];
-        initialImages = Array.isArray(parsed.images)
-          ? parsed.images.map((img: any) => ({ ...img, createdAt: new Date(img.createdAt) }))
-          : [];
-        initialFiles = Array.isArray(parsed.files)
-          ? parsed.files.map((f: any) => ({ ...f, createdAt: new Date(f.createdAt) }))
-          : [];
-        initialDark = typeof parsed.isDarkMode === 'boolean' ? parsed.isDarkMode : false;
-        initialRemoteReady = true;
-      }
-    }
-  } catch {}
-
-  return ({
+    (set, get) => ({
   // Initial state
-  notes: initialNotes,
-  images: initialImages,
-  files: initialFiles,
+  notes: [],
+  images: [],
+  files: [],
   viewport: { x: 0, y: 0, scale: 1 },
   selectedNoteId: null,
   selectedImageId: null,
   selectedFileId: null,
-  isDarkMode: initialDark,
+  isDarkMode: false,
   isSyncing: false,
   syncError: null,
   unsubscribers: [],
@@ -164,7 +136,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   imagesReady: false,
   filesReady: false,
   settingsReady: false,
-  remoteReady: initialRemoteReady,
+  remoteReady: false,
 
   // Note actions
   addNote: (x: number, y: number) => {
@@ -493,8 +465,8 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
 
     const unsubscribers: (() => void)[] = [];
 
-    // Reset readiness flags (preserve remoteReady so cached UI can stay visible)
-    set({ notesReady: false, imagesReady: false, filesReady: false, settingsReady: false });
+    // Reset readiness flags
+    set({ notesReady: false, imagesReady: false, filesReady: false, settingsReady: false, remoteReady: false });
 
     // Load cached remote snapshot for immediate UX (if present)
     try {
@@ -543,7 +515,6 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
               isDarkMode: next.isDarkMode,
             };
             localStorage.setItem(`remoteCache:${userId}`, JSON.stringify(cache));
-            localStorage.setItem('remoteCache:lastUserId', userId);
           } catch {}
           const remoteReady = next.notesReady && next.imagesReady && next.filesReady && next.settingsReady;
           return { ...next, remoteReady };
@@ -570,7 +541,6 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
               isDarkMode: next.isDarkMode,
             };
             localStorage.setItem(`remoteCache:${userId}`, JSON.stringify(cache));
-            localStorage.setItem('remoteCache:lastUserId', userId);
           } catch {}
           const remoteReady = next.notesReady && next.imagesReady && next.filesReady && next.settingsReady;
           return { ...next, remoteReady };
@@ -597,7 +567,6 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
               isDarkMode: next.isDarkMode,
             };
             localStorage.setItem(`remoteCache:${userId}`, JSON.stringify(cache));
-            localStorage.setItem('remoteCache:lastUserId', userId);
           } catch {}
           const remoteReady = next.notesReady && next.imagesReady && next.filesReady && next.settingsReady;
           return { ...next, remoteReady };
@@ -621,7 +590,6 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
                 isDarkMode: next.isDarkMode,
               };
               localStorage.setItem(`remoteCache:${userId}`, JSON.stringify(cache));
-              localStorage.setItem('remoteCache:lastUserId', userId);
             } catch {}
             const remoteReady = next.notesReady && next.imagesReady && next.filesReady && next.settingsReady;
             return { ...next, remoteReady };
@@ -650,6 +618,5 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   undo: () => {},
   redo: () => {},
     })
-  }
   )
 );

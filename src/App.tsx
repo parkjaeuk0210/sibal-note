@@ -167,7 +167,7 @@ function App() {
               </button>
             </div>
             
-            <SyncStatus />
+            {/* <SyncStatus /> */}
           </div>
           
           {/* Right side - Settings */}

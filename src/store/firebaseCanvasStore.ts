@@ -119,16 +119,44 @@ const firebaseFileToLocal = (firebaseFile: FirebaseFile): CanvasFile => ({
 
 export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   undoable(
-    (set, get) => ({
+    (set, get) => {
+  // Prepare initial state from cached remote snapshot synchronously (before first paint)
+  let initialNotes: Note[] = [];
+  let initialImages: CanvasImage[] = [];
+  let initialFiles: CanvasFile[] = [];
+  let initialDark = false;
+  let initialRemoteReady = false;
+  try {
+    const lastUid = localStorage.getItem('remoteCache:lastUserId');
+    if (lastUid) {
+      const cachedRaw = localStorage.getItem(`remoteCache:${lastUid}`);
+      if (cachedRaw) {
+        const parsed = JSON.parse(cachedRaw);
+        initialNotes = Array.isArray(parsed.notes)
+          ? parsed.notes.map((n: any) => ({ ...n, createdAt: new Date(n.createdAt), updatedAt: new Date(n.updatedAt) }))
+          : [];
+        initialImages = Array.isArray(parsed.images)
+          ? parsed.images.map((img: any) => ({ ...img, createdAt: new Date(img.createdAt) }))
+          : [];
+        initialFiles = Array.isArray(parsed.files)
+          ? parsed.files.map((f: any) => ({ ...f, createdAt: new Date(f.createdAt) }))
+          : [];
+        initialDark = typeof parsed.isDarkMode === 'boolean' ? parsed.isDarkMode : false;
+        initialRemoteReady = true;
+      }
+    }
+  } catch {}
+
+  return ({
   // Initial state
-  notes: [],
-  images: [],
-  files: [],
+  notes: initialNotes,
+  images: initialImages,
+  files: initialFiles,
   viewport: { x: 0, y: 0, scale: 1 },
   selectedNoteId: null,
   selectedImageId: null,
   selectedFileId: null,
-  isDarkMode: false,
+  isDarkMode: initialDark,
   isSyncing: false,
   syncError: null,
   unsubscribers: [],
@@ -136,7 +164,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   imagesReady: false,
   filesReady: false,
   settingsReady: false,
-  remoteReady: false,
+  remoteReady: initialRemoteReady,
 
   // Note actions
   addNote: (x: number, y: number) => {
@@ -622,5 +650,6 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   undo: () => {},
   redo: () => {},
     })
+  }
   )
 );

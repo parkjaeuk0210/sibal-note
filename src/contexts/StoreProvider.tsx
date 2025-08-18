@@ -64,17 +64,25 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, [sharedStore.canvasId]);
 
   useEffect(() => {
+    // Hydrate local store only in guest/local mode (no cache, not shared)
+    const isGuestLocal = (!user || user.isAnonymous) && !isSharedMode && !hasRemoteCache;
+    if (isGuestLocal) {
+      try {
+        // @ts-ignore zustand persist API present in v5
+        (useCanvasStore as any).persist?.rehydrate?.();
+      } catch {}
+    }
+
     // Check for pending share token after login
     if (user && !loading) {
       const pendingToken = sessionStorage.getItem('pendingShareToken');
       if (pendingToken) {
         sessionStorage.removeItem('pendingShareToken');
-        // Navigate to share link
         window.location.href = `/share/${pendingToken}`;
         return;
       }
     }
-    
+
     if (isSharedMode) {
       // Already in shared mode, no need to do anything
     } else if (isFirebaseMode && user) {
@@ -93,7 +101,21 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         sharedStore.cleanupSharedCanvas();
       }
     };
-  }, [isFirebaseMode, isSharedMode, user?.uid]);
+  }, [isFirebaseMode, isSharedMode, user?.uid, loading, hasRemoteCache]);
+
+  // If cached remote exists but logged-in user doesn't match, clear cache view to avoid showing wrong data
+  useEffect(() => {
+    if (!loading && user && hasRemoteCache) {
+      try {
+        const lastUid = localStorage.getItem('remoteCache:lastUserId');
+        if (lastUid && lastUid !== user.uid) {
+          useFirebaseCanvasStore.setState({
+            notes: [], images: [], files: [], remoteReady: false,
+          } as Partial<FirebaseCanvasStore>);
+        }
+      } catch {}
+    }
+  }, [loading, user?.uid, hasRemoteCache]);
 
   return (
     <StoreContext.Provider value={{ isFirebaseMode, isSharedMode }}>

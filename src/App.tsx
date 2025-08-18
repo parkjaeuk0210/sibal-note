@@ -123,7 +123,7 @@ function App() {
             {user && (
               <button
                 onClick={() => setShowCanvasList(true)}
-                className="glass-button rounded-full px-2 sm:px-4 py-2 flex items-center gap-1 sm:gap-2 hover:scale-105 transition-transform"
+                className="glass-button rounded-full px-2 sm:px-4 py-2 flex items-center gap-1 sm:gap-2 hover:scale-105 transition-transform text-gray-700 dark:text-gray-200"
               >
                 <svg className="w-4 sm:w-5 h-4 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -142,7 +142,7 @@ function App() {
               <button
                 onClick={undo}
                 disabled={!canUndo}
-                className={`glass-button rounded-full p-2 sm:p-3 transition-transform ${
+                className={`glass-button rounded-full p-2 sm:p-3 transition-transform text-gray-700 dark:text-gray-200 ${
                   canUndo ? 'hover:scale-105' : 'opacity-50 cursor-not-allowed'
                 }`}
                 title="실행 취소 (Ctrl+Z)"
@@ -155,7 +155,7 @@ function App() {
               <button
                 onClick={redo}
                 disabled={!canRedo}
-                className={`glass-button rounded-full p-2 sm:p-3 transition-transform ${
+                className={`glass-button rounded-full p-2 sm:p-3 transition-transform text-gray-700 dark:text-gray-200 ${
                   canRedo ? 'hover:scale-105' : 'opacity-50 cursor-not-allowed'
                 }`}
                 title="다시 실행 (Ctrl+Y)"

@@ -182,7 +182,7 @@ export const Toolbar = ({ isSharedMode, showCollaborators, onToggleCollaborators
         
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="glass-button rounded-full p-3 hover:scale-105 transition-transform"
+          className="glass-button rounded-full p-3 hover:scale-105 transition-transform text-gray-700 dark:text-gray-200"
           title="파일 추가"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,7 +196,7 @@ export const Toolbar = ({ isSharedMode, showCollaborators, onToggleCollaborators
             
             <button
               onClick={() => setShowShareModal(true)}
-              className="glass-button rounded-full p-3 hover:scale-105 transition-transform"
+              className="glass-button rounded-full p-3 hover:scale-105 transition-transform text-gray-700 dark:text-gray-200"
               title="공유하기"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -208,7 +208,7 @@ export const Toolbar = ({ isSharedMode, showCollaborators, onToggleCollaborators
             {isSharedMode && Object.keys(participants).length > 1 && (
               <button
                 onClick={onToggleCollaborators}
-                className={`glass-button rounded-full p-3 hover:scale-105 transition-transform ${
+                className={`glass-button rounded-full p-3 hover:scale-105 transition-transform text-gray-700 dark:text-gray-200 ${
                   showCollaborators ? 'bg-blue-500 bg-opacity-20' : ''
                 }`}
                 title={showCollaborators ? "참여자 목록 숨기기" : "참여자 목록 보기"}
@@ -246,7 +246,7 @@ export const Toolbar = ({ isSharedMode, showCollaborators, onToggleCollaborators
             
             <button
               onClick={handleDelete}
-              className="glass-button rounded-full p-3 hover:scale-105 transition-transform text-gray-700 dark:text-white"
+              className="glass-button rounded-full p-3 hover:scale-105 transition-transform text-red-600 dark:text-red-400"
               title="메모 삭제"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,7 +262,7 @@ export const Toolbar = ({ isSharedMode, showCollaborators, onToggleCollaborators
             
             <button
               onClick={handleDelete}
-              className="glass-button rounded-full p-3 hover:scale-105 transition-transform text-gray-700 dark:text-white"
+              className="glass-button rounded-full p-3 hover:scale-105 transition-transform text-red-600 dark:text-red-400"
               title="삭제"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

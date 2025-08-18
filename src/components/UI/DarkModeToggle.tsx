@@ -6,17 +6,27 @@ export const DarkModeToggle = () => {
   const toggleDarkMode = useAppStore((state) => state.toggleDarkMode);
   const setDarkMode = useAppStore((state) => state.setDarkMode);
 
-  // Check system preference on mount
+  // Initialize from saved theme or system preference on mount
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setDarkMode(mediaQuery.matches);
-
-    const handleChange = (e: MediaQueryListEvent) => {
-      setDarkMode(e.matches);
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    try {
+      const saved = localStorage.getItem('interectnote-theme');
+      if (saved === 'dark' || saved === 'light') {
+        setDarkMode(saved === 'dark');
+        return;
+      }
+    } catch {}
+    // Fallback to system preference if no explicit choice saved
+    try {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      setDarkMode(!!mq.matches);
+      const onChange = (e: MediaQueryListEvent) => {
+        // Only auto-follow system if user hasn't explicitly chosen a theme yet
+        const saved = localStorage.getItem('interectnote-theme');
+        if (!saved) setDarkMode(e.matches);
+      };
+      mq.addEventListener('change', onChange);
+      return () => mq.removeEventListener('change', onChange);
+    } catch {}
   }, [setDarkMode]);
 
   // Apply dark mode class to body
@@ -26,6 +36,9 @@ export const DarkModeToggle = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    try {
+      localStorage.setItem('interectnote-theme', isDarkMode ? 'dark' : 'light');
+    } catch {}
   }, [isDarkMode]);
 
   return (

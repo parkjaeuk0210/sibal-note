@@ -6,11 +6,30 @@
     <link rel="apple-touch-icon" href="/icon-192.png" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#FEF08A" />
+    <meta name="color-scheme" content="dark light" />
+    <!-- Adaptive theme-color to avoid bright flash on load -->
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b1220" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f6f7fb" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>InterectNote - 무한 캔버스 메모</title>
+    <!-- Early theme bootstrap to prevent light flash -->
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('interectnote-theme');
+          var isDark = saved ? (saved === 'dark') : window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.style.backgroundColor = '#0b1220';
+          } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.style.backgroundColor = '#f6f7fb';
+          }
+        } catch (e) { /* no-op */ }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -21,3 +21,7 @@ body {
   -webkit-user-select: none;
   user-select: none;
 }
+
+/* Prevent white flash before app mounts */
+html { background-color: #f6f7fb; }
+html.dark { background-color: #0b1220; }

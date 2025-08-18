@@ -2,11 +2,21 @@ import React from 'react';
 import { useSync } from '../../contexts/SyncContext';
 import { useTranslation } from '../../contexts/I18nContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useFirebaseCanvasStore } from '../../store/firebaseCanvasStore';
+import { useStoreMode } from '../../contexts/StoreProvider';
 
 export const SyncStatus: React.FC = () => {
   const { syncStatus, lastSyncTime } = useSync();
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { isFirebaseMode } = useStoreMode();
+  
+  // Get Firebase sync status
+  const notesReady = useFirebaseCanvasStore((s) => s.notesReady);
+  const imagesReady = useFirebaseCanvasStore((s) => s.imagesReady);
+  const filesReady = useFirebaseCanvasStore((s) => s.filesReady);
+  const settingsReady = useFirebaseCanvasStore((s) => s.settingsReady);
+  const remoteReady = useFirebaseCanvasStore((s) => s.remoteReady);
 
   // Don't show sync status for anonymous users
   if (!user || user.isAnonymous) return null;
@@ -59,6 +69,12 @@ export const SyncStatus: React.FC = () => {
   };
 
   const getStatusText = () => {
+    // Show detailed sync progress for Firebase mode
+    if (isFirebaseMode && !remoteReady) {
+      const readyCount = [notesReady, imagesReady, filesReady, settingsReady].filter(Boolean).length;
+      return `동기화 중... (${readyCount}/4)`;
+    }
+    
     switch (syncStatus) {
       case 'syncing':
         return t('syncing');
@@ -73,13 +89,25 @@ export const SyncStatus: React.FC = () => {
     }
   };
 
+  // Show more prominent indicator when Firebase is still syncing
+  const isInitialSync = isFirebaseMode && !remoteReady;
+  
   return (
-    <div className="flex items-center gap-2 px-3 py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg shadow-lg">
-      <div className={`flex items-center gap-2 ${getStatusColor()}`}>
-        {getStatusIcon()}
+    <div className={`flex items-center gap-2 px-3 py-2 backdrop-blur-sm rounded-lg shadow-lg transition-all ${
+      isInitialSync 
+        ? 'bg-blue-100/80 dark:bg-blue-900/80 border border-blue-200 dark:border-blue-700' 
+        : 'bg-white/80 dark:bg-gray-800/80'
+    }`}>
+      <div className={`flex items-center gap-2 ${isInitialSync ? 'text-blue-600 dark:text-blue-400' : getStatusColor()}`}>
+        {isInitialSync ? (
+          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        ) : getStatusIcon()}
         <span className="text-sm font-medium">{getStatusText()}</span>
       </div>
-      {lastSyncTime && syncStatus === 'synced' && (
+      {lastSyncTime && syncStatus === 'synced' && !isInitialSync && (
         <span className="text-xs text-gray-500 dark:text-gray-400">
           {lastSyncTime.toLocaleTimeString()}
         </span>

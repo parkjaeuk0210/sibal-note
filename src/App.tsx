@@ -23,7 +23,6 @@ function App() {
   const { user } = useAuth();
   const { isSharedMode } = useStoreMode();
   const { canvasInfo } = useSharedCanvasStore();
-  const remoteReady = useFirebaseCanvasStore((s) => s.remoteReady);
   const { loading } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showCanvasList, setShowCanvasList] = useState(false);
@@ -83,12 +82,12 @@ function App() {
   // Removed automatic login modal - users can now use the app freely
   // and sign in when they want using the Sign In button
 
-  // Gate rendering while auth loads or remote snapshot not ready
+  // Gate rendering only while auth is loading (not for Firebase data)
   const isLoggedIn = !!user && !user.isAnonymous;
   const isFirebaseMode = isLoggedIn && !isSharedMode;
-  const shouldGate = loading || (isFirebaseMode && !remoteReady);
-
-  if (shouldGate) {
+  
+  // Only show loading screen while authentication is being determined
+  if (loading) {
     return (
       <ErrorBoundary>
         <div className="w-screen h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">

@@ -489,7 +489,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
           images: cachedImages,
           files: cachedFiles,
           ...(cachedDark !== undefined ? { isDarkMode: cachedDark } : {}),
-          remoteReady: true, // Show cached data instantly
+          // Don't set remoteReady to true here - let it be set when Firebase data arrives
         });
       }
     } catch (e) {

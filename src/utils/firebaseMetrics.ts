@@ -104,9 +104,9 @@ class FirebaseMetricsTracker {
 
 export const firebaseMetrics = new FirebaseMetricsTracker();
 
-// 개발 모드에서 주기적으로 메트릭 출력
-if (import.meta.env.DEV) {
-  setInterval(() => {
-    firebaseMetrics.logMetrics();
-  }, 60000); // 1분마다
-}
+// 개발 모드에서 주기적으로 메트릭 출력 (비활성화 - 성능 영향)
+// if (import.meta.env.DEV) {
+//   setInterval(() => {
+//     firebaseMetrics.logMetrics();
+//   }, 60000); // 1분마다
+// }

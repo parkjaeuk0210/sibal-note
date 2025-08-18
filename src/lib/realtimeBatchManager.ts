@@ -10,7 +10,8 @@ class RealtimeDatabaseBatchManager {
   private updates: BatchUpdate = {};
   private deletePaths: string[] = [];
   private batchTimer: NodeJS.Timeout | null = null;
-  private readonly BATCH_DELAY = 500; // 500ms delay to collect operations
+  private readonly BATCH_DELAY = 100; // Reduced to 100ms for better responsiveness
+  private isInitialLoad = true;
 
   // Add update operation
   addUpdate(path: string, value: any) {
@@ -27,6 +28,13 @@ class RealtimeDatabaseBatchManager {
 
   // Schedule batch execution
   private scheduleBatch() {
+    // Execute immediately during initial load for better performance
+    if (this.isInitialLoad) {
+      this.executeBatch();
+      this.isInitialLoad = false;
+      return;
+    }
+    
     if (this.batchTimer) {
       clearTimeout(this.batchTimer);
     }

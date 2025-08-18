@@ -525,16 +525,24 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
 
     // Subscribe to images
     unsubscribers.push(
-      subscribeToImages(userId, async (firebaseImages) => {
-        // Trigger migration for base64 images
-        migrationManager.migrateImages(userId, firebaseImages).catch(err => {
-          console.error('Image migration error:', err);
-        });
+      subscribeToImages(userId, (firebaseImages) => {
+        // Only trigger migration once after initial load
+        const shouldMigrate = get().imagesReady === false;
         
         const images = Object.entries(firebaseImages).map(([id, image]) => ({
           ...firebaseImageToLocal(image),
           id,
         }));
+        
+        // Trigger migration asynchronously without blocking UI
+        if (shouldMigrate && Object.keys(firebaseImages).length > 0) {
+          setTimeout(() => {
+            migrationManager.migrateImages(userId, firebaseImages).catch(err => {
+              console.error('Image migration error:', err);
+            });
+          }, 2000); // Delay migration to not interfere with initial load
+        }
+        
         set((state) => {
           const next = { ...state, images, imagesReady: true } as FirebaseCanvasStore;
           try {
@@ -556,16 +564,24 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
 
     // Subscribe to files
     unsubscribers.push(
-      subscribeToFiles(userId, async (firebaseFiles) => {
-        // Trigger migration for base64 files
-        migrationManager.migrateFiles(userId, firebaseFiles).catch(err => {
-          console.error('File migration error:', err);
-        });
+      subscribeToFiles(userId, (firebaseFiles) => {
+        // Only trigger migration once after initial load
+        const shouldMigrate = get().filesReady === false;
         
         const files = Object.entries(firebaseFiles).map(([id, file]) => ({
           ...firebaseFileToLocal(file),
           id,
         }));
+        
+        // Trigger migration asynchronously without blocking UI
+        if (shouldMigrate && Object.keys(firebaseFiles).length > 0) {
+          setTimeout(() => {
+            migrationManager.migrateFiles(userId, firebaseFiles).catch(err => {
+              console.error('File migration error:', err);
+            });
+          }, 2000); // Delay migration to not interfere with initial load
+        }
+        
         set((state) => {
           const next = { ...state, files, filesReady: true } as FirebaseCanvasStore;
           try {

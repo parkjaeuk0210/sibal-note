@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSharedCanvasStore } from '../../store/sharedCanvasStore';
 import { useAppStore } from '../../contexts/StoreProvider';
 import { useAuth } from '../../contexts/AuthContext';
@@ -21,6 +21,20 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose }) => {
   
   const { canvasId, isOwner, generateShareLink, createCanvas } = useSharedCanvasStore();
   const notes = useAppStore((state) => state.notes);
+
+  // Handle ESC key press
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    
+    if (isOpen) {
+      document.addEventListener('keydown', handleEsc);
+      return () => document.removeEventListener('keydown', handleEsc);
+    }
+  }, [isOpen, onClose]);
 
   const handleCreateSharedCanvas = async () => {
     if (!user || !canvasName.trim()) return;
@@ -70,8 +84,19 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-[100] p-4 sm:p-6 pt-10 sm:pt-20 overflow-y-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full max-h-[70vh] sm:max-h-[80vh] overflow-y-auto">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-[100] p-4 sm:p-6 pt-10 sm:pt-20 overflow-y-auto"
+      onClick={(e) => {
+        // Close modal when clicking outside
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <div 
+        className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full max-h-[70vh] sm:max-h-[80vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             캔버스 공유

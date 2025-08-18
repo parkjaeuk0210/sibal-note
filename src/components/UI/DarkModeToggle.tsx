@@ -44,13 +44,13 @@ export const DarkModeToggle = () => {
   return (
     <button
       onClick={toggleDarkMode}
-      className="glass-button rounded-full p-3 hover:scale-105 transition-transform"
+      className="glass-button rounded-full p-2 sm:p-3 hover:scale-105 transition-transform"
       title={isDarkMode ? '라이트 모드로 전환' : '다크 모드로 전환'}
       aria-label={isDarkMode ? '라이트 모드로 전환' : '다크 모드로 전환'}
     >
       {isDarkMode ? (
         // Sun icon for light mode
-        <svg className="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 sm:w-5 h-4 sm:h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path 
             strokeLinecap="round" 
             strokeLinejoin="round" 
@@ -60,7 +60,7 @@ export const DarkModeToggle = () => {
         </svg>
       ) : (
         // Moon icon for dark mode
-        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 sm:w-5 h-4 sm:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path 
             strokeLinecap="round" 
             strokeLinejoin="round" 

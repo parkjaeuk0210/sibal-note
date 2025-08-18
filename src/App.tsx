@@ -118,37 +118,37 @@ function App() {
         <HelpTooltip />
         
         {/* Top bar */}
-        <div className="fixed top-6 left-6 right-6 z-50 flex justify-between items-center">
+        <div className="fixed top-3 sm:top-6 left-2 sm:left-6 right-2 sm:right-6 z-50 flex justify-between items-center">
           {/* Left side - Canvas selector, Undo/Redo and Sync status */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-3">
             {user && (
               <button
                 onClick={() => setShowCanvasList(true)}
-                className="glass-button rounded-full px-4 py-2 flex items-center gap-2 hover:scale-105 transition-transform"
+                className="glass-button rounded-full px-2 sm:px-4 py-2 flex items-center gap-1 sm:gap-2 hover:scale-105 transition-transform"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 sm:w-5 h-4 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
-                <span className="font-medium">
+                <span className="font-medium text-sm sm:text-base hidden sm:inline">
                   {isSharedMode && canvasInfo ? canvasInfo.name : '내 캔버스'}
                 </span>
                 {isSharedMode && (
-                  <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">
+                  <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-1 sm:px-2 py-0.5 rounded-full">
                     공유
                   </span>
                 )}
               </button>
             )}
-            <div className="flex gap-2">
+            <div className="flex gap-1 sm:gap-2">
               <button
                 onClick={undo}
                 disabled={!canUndo}
-                className={`glass-button rounded-full p-3 transition-transform ${
+                className={`glass-button rounded-full p-2 sm:p-3 transition-transform ${
                   canUndo ? 'hover:scale-105' : 'opacity-50 cursor-not-allowed'
                 }`}
                 title="실행 취소 (Ctrl+Z)"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 sm:w-5 h-4 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                 </svg>
               </button>
@@ -156,12 +156,12 @@ function App() {
               <button
                 onClick={redo}
                 disabled={!canRedo}
-                className={`glass-button rounded-full p-3 transition-transform ${
+                className={`glass-button rounded-full p-2 sm:p-3 transition-transform ${
                   canRedo ? 'hover:scale-105' : 'opacity-50 cursor-not-allowed'
                 }`}
                 title="다시 실행 (Ctrl+Y)"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 sm:w-5 h-4 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" />
                 </svg>
               </button>
@@ -171,13 +171,13 @@ function App() {
           </div>
           
           {/* Right side - Settings */}
-          <div className="flex gap-3 items-center">
+          <div className="flex gap-1 sm:gap-3 items-center">
             {user ? (
               <UserProfile />
             ) : (
               <button
                 onClick={() => setShowLoginModal(true)}
-                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium text-sm sm:text-base rounded-lg transition-colors"
               >
                 Sign In
               </button>

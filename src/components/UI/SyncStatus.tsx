@@ -93,7 +93,7 @@ export const SyncStatus: React.FC = () => {
   const isInitialSync = isFirebaseMode && !remoteReady;
   
   return (
-    <div className={`flex items-center gap-2 px-3 py-2 backdrop-blur-sm rounded-lg shadow-lg transition-all ${
+    <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 backdrop-blur-sm rounded-lg shadow-lg transition-all ${
       isInitialSync 
         ? 'bg-blue-100/80 dark:bg-blue-900/80 border border-blue-200 dark:border-blue-700' 
         : 'bg-white/80 dark:bg-gray-800/80'
@@ -105,10 +105,10 @@ export const SyncStatus: React.FC = () => {
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
         ) : getStatusIcon()}
-        <span className="text-sm font-medium">{getStatusText()}</span>
+        <span className="text-xs sm:text-sm font-medium">{getStatusText()}</span>
       </div>
       {lastSyncTime && syncStatus === 'synced' && !isInitialSync && (
-        <span className="text-xs text-gray-500 dark:text-gray-400">
+        <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">
           {lastSyncTime.toLocaleTimeString()}
         </span>
       )}

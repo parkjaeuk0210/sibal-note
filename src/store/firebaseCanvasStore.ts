@@ -35,6 +35,12 @@ export interface FirebaseCanvasStore {
   isSyncing: boolean;
   syncError: Error | null;
   unsubscribers: (() => void)[];
+  // Remote data readiness
+  notesReady: boolean;
+  imagesReady: boolean;
+  filesReady: boolean;
+  settingsReady: boolean;
+  remoteReady: boolean;
   
   // Actions (matching CanvasStore interface)
   addNote: (x: number, y: number) => void;
@@ -126,6 +132,11 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   isSyncing: false,
   syncError: null,
   unsubscribers: [],
+  notesReady: false,
+  imagesReady: false,
+  filesReady: false,
+  settingsReady: false,
+  remoteReady: false,
 
   // Note actions
   addNote: (x: number, y: number) => {
@@ -454,6 +465,37 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
 
     const unsubscribers: (() => void)[] = [];
 
+    // Reset readiness flags
+    set({ notesReady: false, imagesReady: false, filesReady: false, settingsReady: false, remoteReady: false });
+
+    // Load cached remote snapshot for immediate UX (if present)
+    try {
+      const cacheKey = `remoteCache:${userId}`;
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        const cachedNotes: Note[] = Array.isArray(parsed.notes)
+          ? parsed.notes.map((n: any) => ({ ...n, createdAt: new Date(n.createdAt), updatedAt: new Date(n.updatedAt) }))
+          : [];
+        const cachedImages: CanvasImage[] = Array.isArray(parsed.images)
+          ? parsed.images.map((img: any) => ({ ...img, createdAt: new Date(img.createdAt) }))
+          : [];
+        const cachedFiles: CanvasFile[] = Array.isArray(parsed.files)
+          ? parsed.files.map((f: any) => ({ ...f, createdAt: new Date(f.createdAt) }))
+          : [];
+        const cachedDark = typeof parsed.isDarkMode === 'boolean' ? parsed.isDarkMode : undefined;
+        set({
+          notes: cachedNotes,
+          images: cachedImages,
+          files: cachedFiles,
+          ...(cachedDark !== undefined ? { isDarkMode: cachedDark } : {}),
+          remoteReady: true, // Show cached data instantly
+        });
+      }
+    } catch (e) {
+      console.warn('Failed to load remote cache:', e);
+    }
+
     // Subscribe to notes
     unsubscribers.push(
       subscribeToNotes(userId, (firebaseNotes) => {
@@ -461,7 +503,22 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
           ...firebaseNoteToLocal(note),
           id,
         }));
-        set({ notes });
+        set((state) => {
+          const next = { ...state, notes, notesReady: true } as FirebaseCanvasStore;
+          try {
+            const cache = {
+              version: 1,
+              updatedAt: Date.now(),
+              notes: next.notes.map(n => ({ ...n, createdAt: n.createdAt.getTime(), updatedAt: n.updatedAt.getTime() })),
+              images: next.images.map(img => ({ ...img, createdAt: img.createdAt.getTime() })),
+              files: next.files.map(f => ({ ...f, createdAt: f.createdAt.getTime() })),
+              isDarkMode: next.isDarkMode,
+            };
+            localStorage.setItem(`remoteCache:${userId}`, JSON.stringify(cache));
+          } catch {}
+          const remoteReady = next.notesReady && next.imagesReady && next.filesReady && next.settingsReady;
+          return { ...next, remoteReady };
+        });
       })
     );
 
@@ -472,7 +529,22 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
           ...firebaseImageToLocal(image),
           id,
         }));
-        set({ images });
+        set((state) => {
+          const next = { ...state, images, imagesReady: true } as FirebaseCanvasStore;
+          try {
+            const cache = {
+              version: 1,
+              updatedAt: Date.now(),
+              notes: next.notes.map(n => ({ ...n, createdAt: n.createdAt.getTime(), updatedAt: n.updatedAt.getTime() })),
+              images: next.images.map(img => ({ ...img, createdAt: img.createdAt.getTime() })),
+              files: next.files.map(f => ({ ...f, createdAt: f.createdAt.getTime() })),
+              isDarkMode: next.isDarkMode,
+            };
+            localStorage.setItem(`remoteCache:${userId}`, JSON.stringify(cache));
+          } catch {}
+          const remoteReady = next.notesReady && next.imagesReady && next.filesReady && next.settingsReady;
+          return { ...next, remoteReady };
+        });
       })
     );
 
@@ -483,7 +555,22 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
           ...firebaseFileToLocal(file),
           id,
         }));
-        set({ files });
+        set((state) => {
+          const next = { ...state, files, filesReady: true } as FirebaseCanvasStore;
+          try {
+            const cache = {
+              version: 1,
+              updatedAt: Date.now(),
+              notes: next.notes.map(n => ({ ...n, createdAt: n.createdAt.getTime(), updatedAt: n.updatedAt.getTime() })),
+              images: next.images.map(img => ({ ...img, createdAt: img.createdAt.getTime() })),
+              files: next.files.map(f => ({ ...f, createdAt: f.createdAt.getTime() })),
+              isDarkMode: next.isDarkMode,
+            };
+            localStorage.setItem(`remoteCache:${userId}`, JSON.stringify(cache));
+          } catch {}
+          const remoteReady = next.notesReady && next.imagesReady && next.filesReady && next.settingsReady;
+          return { ...next, remoteReady };
+        });
       })
     );
 
@@ -491,7 +578,29 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
     unsubscribers.push(
       subscribeToSettings(userId, (settings) => {
         if (settings.isDarkMode !== undefined) {
-          set({ isDarkMode: settings.isDarkMode });
+          set((state) => {
+            const next = { ...state, isDarkMode: settings.isDarkMode, settingsReady: true } as FirebaseCanvasStore;
+            try {
+              const cache = {
+                version: 1,
+                updatedAt: Date.now(),
+                notes: next.notes.map(n => ({ ...n, createdAt: n.createdAt.getTime(), updatedAt: n.updatedAt.getTime() })),
+                images: next.images.map(img => ({ ...img, createdAt: img.createdAt.getTime() })),
+                files: next.files.map(f => ({ ...f, createdAt: f.createdAt.getTime() })),
+                isDarkMode: next.isDarkMode,
+              };
+              localStorage.setItem(`remoteCache:${userId}`, JSON.stringify(cache));
+            } catch {}
+            const remoteReady = next.notesReady && next.imagesReady && next.filesReady && next.settingsReady;
+            return { ...next, remoteReady };
+          });
+        } else {
+          // Even without specific settings, mark settings as ready
+          set((state) => {
+            const next = { ...state, settingsReady: true } as FirebaseCanvasStore;
+            const remoteReady = next.notesReady && next.imagesReady && next.filesReady && next.settingsReady;
+            return { ...next, remoteReady };
+          });
         }
       })
     );
@@ -502,7 +611,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   cleanupFirebaseSync: () => {
     const { unsubscribers } = get();
     unsubscribers.forEach(unsubscribe => unsubscribe());
-    set({ unsubscribers: [] });
+    set({ unsubscribers: [], notesReady: false, imagesReady: false, filesReady: false, settingsReady: false, remoteReady: false });
   },
   
   // These will be provided by the undoable middleware

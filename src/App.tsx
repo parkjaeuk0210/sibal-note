@@ -14,6 +14,7 @@ import { CanvasList } from './components/Canvas/CanvasList';
 import { useAuth } from './contexts/AuthContext';
 import { useAppStore, useStoreMode } from './contexts/StoreProvider';
 import { useSharedCanvasStore } from './store/sharedCanvasStore';
+import { useFirebaseCanvasStore } from './store/firebaseCanvasStore';
 import { useHistoryStore } from './store/historyStore';
 import './styles/glassmorphism.css';
 import './styles/dark-mode.css';
@@ -22,6 +23,8 @@ function App() {
   const { user } = useAuth();
   const { isSharedMode } = useStoreMode();
   const { canvasInfo } = useSharedCanvasStore();
+  const remoteReady = useFirebaseCanvasStore((s) => s.remoteReady);
+  const { loading } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showCanvasList, setShowCanvasList] = useState(false);
   const [showCollaborators, setShowCollaborators] = useState(true); // Show by default in shared mode
@@ -79,6 +82,24 @@ function App() {
 
   // Removed automatic login modal - users can now use the app freely
   // and sign in when they want using the Sign In button
+
+  // Gate rendering while auth loads or remote snapshot not ready
+  const isLoggedIn = !!user && !user.isAnonymous;
+  const isFirebaseMode = isLoggedIn && !isSharedMode;
+  const shouldGate = loading || (isFirebaseMode && !remoteReady);
+
+  if (shouldGate) {
+    return (
+      <ErrorBoundary>
+        <div className="w-screen h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3 text-gray-600 dark:text-gray-300">
+            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <div className="text-sm">불러오는 중…</div>
+          </div>
+        </div>
+      </ErrorBoundary>
+    );
+  }
 
   return (
     <ErrorBoundary>

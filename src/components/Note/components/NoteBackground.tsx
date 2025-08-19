@@ -30,42 +30,35 @@ export const NoteBackground: React.FC<NoteBackgroundProps> = ({
   return (
     <Shape
       sceneFunc={(context) => {
-        const gradient = context.createLinearGradient(0, 0, safeWidth * 0.5, safeHeight);
+        let fillStyle;
         
         if (isDarkMode) {
+          // 다크 모드에서는 단색 사용
           switch (color) {
             case 'yellow':
-              gradient.addColorStop(0, 'rgba(120, 53, 15, 0.95)');
-              gradient.addColorStop(0.5, 'rgba(146, 64, 14, 0.88)');
-              gradient.addColorStop(1, 'rgba(180, 83, 9, 0.82)');
+              fillStyle = '#78350F';
               break;
             case 'pink':
-              gradient.addColorStop(0, 'rgba(131, 24, 67, 0.95)');
-              gradient.addColorStop(0.5, 'rgba(159, 18, 57, 0.88)');
-              gradient.addColorStop(1, 'rgba(190, 24, 93, 0.82)');
+              fillStyle = '#831843';
               break;
             case 'blue':
-              gradient.addColorStop(0, 'rgba(30, 58, 138, 0.95)');
-              gradient.addColorStop(0.5, 'rgba(29, 78, 216, 0.88)');
-              gradient.addColorStop(1, 'rgba(37, 99, 235, 0.82)');
+              fillStyle = '#1E3A8A';
               break;
             case 'green':
-              gradient.addColorStop(0, 'rgba(20, 83, 45, 0.95)');
-              gradient.addColorStop(0.5, 'rgba(22, 101, 52, 0.88)');
-              gradient.addColorStop(1, 'rgba(34, 197, 94, 0.82)');
+              fillStyle = '#14532D';
               break;
             case 'purple':
-              gradient.addColorStop(0, 'rgba(76, 29, 149, 0.95)');
-              gradient.addColorStop(0.5, 'rgba(91, 33, 182, 0.88)');
-              gradient.addColorStop(1, 'rgba(124, 58, 237, 0.82)');
+              fillStyle = '#4C1D95';
               break;
             case 'orange':
-              gradient.addColorStop(0, 'rgba(124, 45, 18, 0.95)');
-              gradient.addColorStop(0.5, 'rgba(154, 52, 18, 0.88)');
-              gradient.addColorStop(1, 'rgba(194, 65, 12, 0.82)');
+              fillStyle = '#7C2D12';
               break;
+            default:
+              fillStyle = '#78350F';
           }
         } else {
+          // 라이트 모드에서는 그라데이션 유지
+          const gradient = context.createLinearGradient(0, 0, safeWidth * 0.5, safeHeight);
           switch (color) {
             case 'yellow':
               gradient.addColorStop(0, 'rgba(254, 243, 199, 0.95)');
@@ -98,11 +91,12 @@ export const NoteBackground: React.FC<NoteBackgroundProps> = ({
               gradient.addColorStop(1, 'rgba(251, 191, 36, 0.82)');
               break;
           }
+          fillStyle = gradient;
         }
         
         context.beginPath();
         context.roundRect(0, 0, safeWidth, safeHeight, CORNER_RADIUS);
-        context.fillStyle = gradient;
+        context.fillStyle = fillStyle;
         context.fill();
         context.closePath();
       }}

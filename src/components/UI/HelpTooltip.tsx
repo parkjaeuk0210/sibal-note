@@ -43,7 +43,7 @@ export const HelpTooltip = () => {
             <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
               <span className="text-xs">1</span>
             </div>
-            <p className="text-sm text-gray-700">더블 클릭 또는 + 버튼으로 메모 추가</p>
+            <p className="text-sm text-gray-700">더블 클릭 또는 + 버튼으로 새 메모 추가</p>
           </div>
           
           <div className="flex items-start gap-3">

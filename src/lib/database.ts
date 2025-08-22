@@ -62,15 +62,23 @@ export const saveNote = async (userId: string, note: Omit<FirebaseNote, 'id' | '
   return newNoteRef.key;
 };
 
-export const updateNote = async (userId: string, noteId: string, updates: Partial<Omit<FirebaseNote, 'id' | 'userId' | 'deviceId'>>) => {
+export const updateNote = async (
+  userId: string,
+  noteId: string,
+  updates: Partial<Omit<FirebaseNote, 'id' | 'userId' | 'deviceId'>>,
+  options?: { touchUpdatedAt?: boolean }
+) => {
   // Use batch manager for better performance
   const path = `${getNotesPath(userId)}/${noteId}`;
+
+  const shouldTouchUpdatedAt = options?.touchUpdatedAt !== false;
   
   // Prepare individual field updates for multi-path update
-  const fieldUpdates = Object.entries({
-    ...updates,
-    updatedAt: Date.now(),
-  }).reduce((acc, [key, value]) => {
+  const payload = shouldTouchUpdatedAt
+    ? { ...updates, updatedAt: Date.now() }
+    : { ...updates };
+
+  const fieldUpdates = Object.entries(payload).reduce((acc, [key, value]) => {
     acc[`${path}/${key}`] = value;
     return acc;
   }, {} as Record<string, any>);
@@ -238,8 +246,8 @@ export const subscribeToNotes = (
     const data = snapshot.val() || {};
     callback(data);
   });
-  
-  return () => off(notesRef, 'value', unsubscribe);
+  // onValue already returns an unsubscribe function in v9
+  return unsubscribe;
 };
 
 export const subscribeToImages = (
@@ -251,8 +259,7 @@ export const subscribeToImages = (
     const data = snapshot.val() || {};
     callback(data);
   });
-  
-  return () => off(imagesRef, 'value', unsubscribe);
+  return unsubscribe;
 };
 
 export const subscribeToFiles = (
@@ -264,8 +271,7 @@ export const subscribeToFiles = (
     const data = snapshot.val() || {};
     callback(data);
   });
-  
-  return () => off(filesRef, 'value', unsubscribe);
+  return unsubscribe;
 };
 
 export const subscribeToSettings = (
@@ -277,6 +283,5 @@ export const subscribeToSettings = (
     const data = snapshot.val() || {};
     callback(data);
   });
-  
-  return () => off(settingsRef, 'value', unsubscribe);
+  return unsubscribe;
 };

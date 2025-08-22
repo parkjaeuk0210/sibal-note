@@ -246,8 +246,8 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
           selectedFileId: null
         });
         
-        // Then update Firebase
-        updateNoteInFirebase(user.uid, id, { zIndex: maxZIndex + 1 })
+        // Then update Firebase (don't touch updatedAt for zIndex changes)
+        updateNoteInFirebase(user.uid, id, { zIndex: maxZIndex + 1 }, { touchUpdatedAt: false })
           .catch((error) => {
             console.error('Failed to update note zIndex:', error);
           });

@@ -5,6 +5,7 @@ import { Note } from '../../types';
 import { useAppStore } from '../../contexts/StoreProvider';
 import { ClickableText } from './components/ClickableText';
 import { parseTextWithURLs } from '../../utils/urlDetection';
+import { NOTE_COLORS, NOTE_COLORS_DARK } from '../../constants/colors';
 
 interface StickyNoteProps {
   note: Note;
@@ -19,23 +20,13 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
   const selectedNoteId = useAppStore((state) => state.selectedNoteId);
   const isSelected = selectedNoteId === note.id;
 
-  const colorMap = {
-    yellow: '#FEF08A',
-    pink: '#FBCFE8',
-    blue: '#93C5FD',
-    green: '#86EFAC',
-    purple: '#C4B5FD',
-    orange: '#FED7AA',
-  };
-
-  const darkColorMap = {
-    yellow: '#FDE047',
-    pink: '#F9A8D4',
-    blue: '#60A5FA',
-    green: '#4ADE80',
-    purple: '#A78BFA',
-    orange: '#FDBA74',
-  };
+  // Use the centralized color system from constants
+  const isDarkMode = document.documentElement.classList.contains('dark');
+  const colorSystem = isDarkMode ? NOTE_COLORS_DARK : NOTE_COLORS;
+  const noteColor = colorSystem[note.color as keyof typeof colorSystem];
+  
+  const backgroundColor = noteColor.primary;
+  const textColor = isDarkMode ? '#FFFFFF' : '#1F2937';
 
   useEffect(() => {
     const group = groupRef.current;
@@ -149,8 +140,8 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
       <Rect
         width={note.width}
         height={note.height}
-        fill={colorMap[note.color]}
-        stroke={isSelected ? darkColorMap[note.color] : 'transparent'}
+        fill={backgroundColor}
+        stroke={isSelected ? noteColor.accent : 'transparent'}
         strokeWidth={2}
         cornerRadius={8}
       />
@@ -158,7 +149,7 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
         const content = note.content || '더블 클릭하여 메모 작성';
         const segments = parseTextWithURLs(content);
         const hasUrls = segments.some(segment => segment.type === 'url');
-        const isDarkMode = false; // StickyNote는 기본적으로 밝은 색상 사용
+        const isDarkTheme = document.documentElement.classList.contains('dark');
         
         if (hasUrls && note.content) {
           return (
@@ -168,7 +159,7 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
               y={10}
               width={note.width - 20}
               height={note.height - 20}
-              isDarkMode={isDarkMode}
+              isDarkMode={isDarkTheme}
               fontSize={16}
               fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
               onLinkClick={(url) => {
@@ -188,7 +179,7 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
             text={content}
             fontSize={16}
             fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-            fill={note.content ? '#1F2937' : '#9CA3AF'}
+            fill={note.content ? textColor : (isDarkTheme ? '#9CA3AF' : '#6B7280')}
             wrap="word"
             lineHeight={1.5}
           />

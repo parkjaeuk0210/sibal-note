@@ -1,40 +1,60 @@
 /* Dark mode styles for glassmorphism components */
 .dark .glass {
-  background: rgba(30, 30, 30, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, 
+    rgba(26, 31, 46, 0.8),
+    rgba(37, 43, 59, 0.7)
+  );
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
 .dark .glass-button {
-  background: rgba(45, 45, 45, 0.8);
+  background: linear-gradient(135deg,
+    rgba(46, 53, 69, 0.9),
+    rgba(37, 43, 59, 0.8)
+  );
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
 }
 
 .dark .glass-button:hover {
-  background: rgba(60, 60, 60, 0.9);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg,
+    rgba(56, 63, 79, 0.95),
+    rgba(46, 53, 69, 0.85)
+  );
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Dark mode text colors */
+/* Dark mode text colors using CSS variables */
 .dark .text-gray-600 {
-  color: rgb(209 213 219);
+  color: var(--text-secondary);
 }
 
 .dark .text-gray-700 {
-  color: rgb(229 231 235);
+  color: var(--text-primary);
 }
 
 .dark .text-red-500 {
-  color: rgb(239 68 68);
+  color: #ef4444;
 }
 
-/* Dark mode shadows */
+/* Enhanced dark mode shadows with subtle color */
 .dark .shadow-lg {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.4),
+    0 4px 6px -2px rgba(0, 0, 0, 0.3),
+    0 0 24px rgba(96, 165, 250, 0.02);
 }
 
 .dark .shadow-xl {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.4),
+    0 10px 10px -5px rgba(0, 0, 0, 0.3),
+    0 0 48px rgba(96, 165, 250, 0.03);
 }
 
 /* Dark mode textarea text color fix */

@@ -2,6 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
+/* CSS Variables for consistent theming */
+:root {
+  /* Light mode colors */
+  --bg-primary: #f6f7fb;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f3f4f6;
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+  --border: #e5e7eb;
+}
+
+.dark {
+  /* Dark mode colors - Modern, comfortable palette */
+  --bg-primary: #0f1419;     /* Main background - Warm dark */
+  --bg-secondary: #1a1f2e;   /* Canvas background */
+  --bg-tertiary: #252b3b;    /* Card/elevated surfaces */
+  --bg-elevated: #2e3545;    /* Hover states */
+  --text-primary: #f0f2f5;   /* Softer white for less eye strain */
+  --text-secondary: #a8b2c7; /* Secondary text */
+  --text-muted: #64748b;     /* Muted text */
+  --border: #2e3545;         /* Border color */
+  
+  /* Accent colors for dark mode */
+  --accent-blue: #60a5fa;
+  --accent-green: #4ade80;
+  --accent-pink: #ec4899;
+  --accent-yellow: #fbbf24;
+  --accent-purple: #a78bfa;
+  --accent-orange: #fb923c;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -23,8 +55,16 @@ body {
 }
 
 /* Prevent white flash before app mounts */
-html { background-color: #f6f7fb; }
-html.dark { background-color: #0b1220; }
+html { 
+  background-color: var(--bg-primary);
+  transition: background-color 0.3s ease;
+}
+
+/* Apply new dark background with subtle gradient */
+html.dark {
+  background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+  min-height: 100vh;
+}
 
 /* Force textarea text color in dark mode - global override */
 .dark textarea,

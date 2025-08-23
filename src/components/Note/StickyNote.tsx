@@ -32,20 +32,23 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
     const group = groupRef.current;
     if (!group) return;
 
-    // Add shadow when selected
+    // Enhanced shadow with glow effect for dark mode
     const shadowEnabled = true;
-    const shadowBlur = isSelected ? 20 : 10;
-    const shadowColor = isSelected ? 'rgba(0, 0, 0, 0.15)' : 'rgba(0, 0, 0, 0.1)';
-    const shadowOffsetY = isSelected ? 10 : 5;
+    const shadowBlur = isSelected ? 24 : 12;
+    const glowColor = isDarkMode && noteColor.glow ? noteColor.glow : null;
+    const shadowColor = isSelected 
+      ? (isDarkMode ? `rgba(0, 0, 0, 0.4)` : 'rgba(0, 0, 0, 0.15)')
+      : (isDarkMode ? `rgba(0, 0, 0, 0.3)` : 'rgba(0, 0, 0, 0.1)');
+    const shadowOffsetY = isSelected ? 12 : 6;
     
     group.setAttrs({
       shadowEnabled,
       shadowBlur,
-      shadowColor,
+      shadowColor: glowColor && isSelected ? glowColor : shadowColor,
       shadowOffsetX: 0,
-      shadowOffsetY,
+      shadowOffsetY: glowColor ? 0 : shadowOffsetY,
     });
-  }, [isSelected]);
+  }, [isSelected, isDarkMode, noteColor.glow]);
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
     updateNote(note.id, {

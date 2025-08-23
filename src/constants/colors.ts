@@ -44,49 +44,55 @@ export const NOTE_COLORS = {
   },
 } as const;
 
-// Dark theme colors - Apple-inspired sophisticated palette
+// Dark theme colors - Modern, vibrant palette with better contrast
 export const NOTE_COLORS_DARK = {
   yellow: {
-    primary: '#3A3424',
-    secondary: '#4A4228',
-    accent: '#E6B86A',
-    header: 'rgba(230, 184, 106, 0.15)',
-    border: 'rgba(230, 184, 106, 0.2)',
+    primary: '#2d2618',      // Warmer, richer dark yellow
+    secondary: '#3a3220',    // Slightly lighter
+    accent: '#fbbf24',       // Bright, vibrant yellow
+    header: 'rgba(251, 191, 36, 0.12)',
+    border: 'rgba(251, 191, 36, 0.25)',
+    glow: 'rgba(251, 191, 36, 0.08)',
   },
   pink: {
-    primary: '#3A2832',
-    secondary: '#4A3240',
-    accent: '#E67AB8',
-    header: 'rgba(230, 122, 184, 0.15)',
-    border: 'rgba(230, 122, 184, 0.2)',
+    primary: '#2d1b2e',      // Deep purple-pink
+    secondary: '#3a2439',    // Richer tone
+    accent: '#ec4899',       // Vibrant pink
+    header: 'rgba(236, 72, 153, 0.12)',
+    border: 'rgba(236, 72, 153, 0.25)',
+    glow: 'rgba(236, 72, 153, 0.08)',
   },
   blue: {
-    primary: '#2A3142',
-    secondary: '#34394A',
-    accent: '#6BA3F7',
-    header: 'rgba(107, 163, 247, 0.15)',
-    border: 'rgba(107, 163, 247, 0.2)',
+    primary: '#1e293b',      // Deep navy blue
+    secondary: '#2e3f57',    // Lighter navy
+    accent: '#60a5fa',       // Sky blue
+    header: 'rgba(96, 165, 250, 0.12)',
+    border: 'rgba(96, 165, 250, 0.25)',
+    glow: 'rgba(96, 165, 250, 0.08)',
   },
   green: {
-    primary: '#283A2F',
-    secondary: '#32453A',
-    accent: '#5FD582',
-    header: 'rgba(95, 213, 130, 0.15)',
-    border: 'rgba(95, 213, 130, 0.2)',
+    primary: '#1a2e1f',      // Forest green
+    secondary: '#243832',    // Lighter forest
+    accent: '#4ade80',       // Mint green
+    header: 'rgba(74, 222, 128, 0.12)',
+    border: 'rgba(74, 222, 128, 0.25)',
+    glow: 'rgba(74, 222, 128, 0.08)',
   },
   purple: {
-    primary: '#342A42',
-    secondary: '#42344A',
-    accent: '#B366EF',
-    header: 'rgba(179, 102, 239, 0.15)',
-    border: 'rgba(179, 102, 239, 0.2)',
+    primary: '#2e1f3e',      // Deep purple
+    secondary: '#3a2a4a',    // Royal purple
+    accent: '#a78bfa',       // Lavender
+    header: 'rgba(167, 139, 250, 0.12)',
+    border: 'rgba(167, 139, 250, 0.25)',
+    glow: 'rgba(167, 139, 250, 0.08)',
   },
   orange: {
-    primary: '#3A2F28',
-    secondary: '#4A3A32',
-    accent: '#F4994C',
-    header: 'rgba(244, 153, 76, 0.15)',
-    border: 'rgba(244, 153, 76, 0.2)',
+    primary: '#2d1f18',      // Burnt orange dark
+    secondary: '#3a2820',    // Terracotta
+    accent: '#fb923c',       // Bright orange
+    header: 'rgba(251, 146, 60, 0.12)',
+    border: 'rgba(251, 146, 60, 0.25)',
+    glow: 'rgba(251, 146, 60, 0.08)',
   },
 } as const;
 

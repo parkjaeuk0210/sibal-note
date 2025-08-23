@@ -60,13 +60,18 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
     selectNote(note.id);
   };
 
-  const handleDoubleClick = () => {
+  const handleDoubleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    console.log('Double click handler called!');
+    e.evt.preventDefault();
+    e.evt.stopPropagation();
     setIsEditing(true);
     // Create textarea for editing
     const stage = groupRef.current?.getStage();
+    console.log('Stage found:', !!stage);
     if (!stage) return;
 
     const textPosition = groupRef.current?.absolutePosition();
+    console.log('Text position:', textPosition);
     if (!textPosition) return;
 
     const areaPosition = {

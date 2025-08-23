@@ -104,8 +104,16 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
     textarea.style.resize = 'none';
     textarea.style.lineHeight = '1.5';
     textarea.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    textarea.style.color = currentTextColor;
-    textarea.style.caretColor = currentTextColor;
+    
+    // Force inline styles for dark mode
+    if (currentIsDarkMode) {
+      textarea.style.setProperty('color', '#FFFFFF', 'important');
+      textarea.style.setProperty('-webkit-text-fill-color', '#FFFFFF', 'important');
+      textarea.style.setProperty('caret-color', '#FFFFFF', 'important');
+    } else {
+      textarea.style.color = currentTextColor;
+      textarea.style.caretColor = currentTextColor;
+    }
 
     textarea.focus();
     textarea.select();

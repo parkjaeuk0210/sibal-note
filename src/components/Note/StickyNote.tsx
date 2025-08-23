@@ -61,18 +61,19 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
   };
 
   const handleDoubleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    console.log('Double click handler called!');
     e.evt.preventDefault();
     e.evt.stopPropagation();
     setIsEditing(true);
     // Create textarea for editing
     const stage = groupRef.current?.getStage();
-    console.log('Stage found:', !!stage);
     if (!stage) return;
 
     const textPosition = groupRef.current?.absolutePosition();
-    console.log('Text position:', textPosition);
     if (!textPosition) return;
+
+    // Get current dark mode state
+    const currentIsDarkMode = document.documentElement.classList.contains('dark');
+    const currentTextColor = currentIsDarkMode ? '#FFFFFF' : '#1F2937';
 
     const areaPosition = {
       x: stage.container().offsetLeft + textPosition.x * stage.scaleX() + stage.x() + 10,
@@ -98,7 +99,7 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
     textarea.style.resize = 'none';
     textarea.style.lineHeight = '1.5';
     textarea.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    textarea.style.color = textColor;
+    textarea.style.color = currentTextColor;
 
     textarea.focus();
     textarea.select();

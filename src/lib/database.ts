@@ -62,23 +62,15 @@ export const saveNote = async (userId: string, note: Omit<FirebaseNote, 'id' | '
   return newNoteRef.key;
 };
 
-export const updateNote = async (
-  userId: string,
-  noteId: string,
-  updates: Partial<Omit<FirebaseNote, 'id' | 'userId' | 'deviceId'>>,
-  options?: { touchUpdatedAt?: boolean }
-) => {
+export const updateNote = async (userId: string, noteId: string, updates: Partial<Omit<FirebaseNote, 'id' | 'userId' | 'deviceId'>>) => {
   // Use batch manager for better performance
   const path = `${getNotesPath(userId)}/${noteId}`;
-
-  const shouldTouchUpdatedAt = options?.touchUpdatedAt !== false;
   
   // Prepare individual field updates for multi-path update
-  const payload = shouldTouchUpdatedAt
-    ? { ...updates, updatedAt: Date.now() }
-    : { ...updates };
-
-  const fieldUpdates = Object.entries(payload).reduce((acc, [key, value]) => {
+  const fieldUpdates = Object.entries({
+    ...updates,
+    updatedAt: Date.now(),
+  }).reduce((acc, [key, value]) => {
     acc[`${path}/${key}`] = value;
     return acc;
   }, {} as Record<string, any>);
@@ -246,8 +238,8 @@ export const subscribeToNotes = (
     const data = snapshot.val() || {};
     callback(data);
   });
-  // onValue already returns an unsubscribe function in v9
-  return unsubscribe;
+  
+  return () => off(notesRef, 'value', unsubscribe);
 };
 
 export const subscribeToImages = (
@@ -259,7 +251,8 @@ export const subscribeToImages = (
     const data = snapshot.val() || {};
     callback(data);
   });
-  return unsubscribe;
+  
+  return () => off(imagesRef, 'value', unsubscribe);
 };
 
 export const subscribeToFiles = (
@@ -271,7 +264,8 @@ export const subscribeToFiles = (
     const data = snapshot.val() || {};
     callback(data);
   });
-  return unsubscribe;
+  
+  return () => off(filesRef, 'value', unsubscribe);
 };
 
 export const subscribeToSettings = (
@@ -283,5 +277,6 @@ export const subscribeToSettings = (
     const data = snapshot.val() || {};
     callback(data);
   });
-  return unsubscribe;
+  
+  return () => off(settingsRef, 'value', unsubscribe);
 };

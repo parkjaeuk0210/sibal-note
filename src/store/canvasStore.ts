@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 import { undoable } from './middleware/undoable';
 import { Note, NoteColor, Viewport, CanvasImage, CanvasFile } from '../types';
 
@@ -140,13 +140,10 @@ export const useCanvasStore = create<CanvasStore>()(
           
           // Test if we can save to localStorage
           try {
-            // Use a temporary key so we don't corrupt zustand-persist data
-            const testKey = 'interectnote-storage-test';
+            const testKey = 'interectnote-storage';
             const newData = JSON.stringify({ ...state, ...newState });
             
             localStorage.setItem(testKey, newData);
-            // Clean up the test entry
-            localStorage.removeItem(testKey);
             
             // Success - return new state
             return newState;
@@ -196,13 +193,10 @@ export const useCanvasStore = create<CanvasStore>()(
           
           // Test if we can save to localStorage
           try {
-            // Use a temporary key so we don't corrupt zustand-persist data
-            const testKey = 'interectnote-storage-test';
+            const testKey = 'interectnote-storage';
             const newData = JSON.stringify({ ...state, ...newState });
             
             localStorage.setItem(testKey, newData);
-            // Clean up the test entry
-            localStorage.removeItem(testKey);
             
             // Success - return new state
             return newState;
@@ -266,8 +260,6 @@ export const useCanvasStore = create<CanvasStore>()(
     ),
     {
       name: 'interectnote-storage',
-      version: 2,
-      storage: createJSONStorage(() => localStorage),
     }
   )
 );

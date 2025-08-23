@@ -73,7 +73,6 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
 
     // Get current dark mode state
     const currentIsDarkMode = document.documentElement.classList.contains('dark');
-    const currentTextColor = currentIsDarkMode ? '#FFFFFF' : '#1F2937';
 
     const areaPosition = {
       x: stage.container().offsetLeft + textPosition.x * stage.scaleX() + stage.x() + 10,
@@ -81,13 +80,10 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
     };
 
     const textarea = document.createElement('textarea');
-    document.body.appendChild(textarea);
-
-    // Apply dark mode class if in dark mode
-    if (currentIsDarkMode) {
-      textarea.className = 'dark-mode-textarea';
-    }
-
+    textarea.id = `note-editor-${note.id}`;
+    textarea.className = currentIsDarkMode ? 'dark-mode-textarea note-textarea' : 'note-textarea';
+    
+    // Set all styles first
     textarea.value = note.content;
     textarea.style.position = 'absolute';
     textarea.style.top = `${areaPosition.y}px`;
@@ -104,16 +100,43 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
     textarea.style.resize = 'none';
     textarea.style.lineHeight = '1.5';
     textarea.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    textarea.style.zIndex = '9999';
     
-    // Force inline styles for dark mode
+    // Force text color with maximum specificity
     if (currentIsDarkMode) {
-      textarea.style.setProperty('color', '#FFFFFF', 'important');
-      textarea.style.setProperty('-webkit-text-fill-color', '#FFFFFF', 'important');
-      textarea.style.setProperty('caret-color', '#FFFFFF', 'important');
+      // Use cssText for maximum priority
+      const darkStyles = `
+        color: white !important;
+        -webkit-text-fill-color: white !important;
+        caret-color: white !important;
+      `;
+      textarea.style.cssText += darkStyles;
+      
+      // Double-check by setting properties individually
+      textarea.style.setProperty('color', 'white', 'important');
+      textarea.style.setProperty('-webkit-text-fill-color', 'white', 'important');
+      textarea.style.setProperty('caret-color', 'white', 'important');
     } else {
-      textarea.style.color = currentTextColor;
-      textarea.style.caretColor = currentTextColor;
+      textarea.style.color = '#1F2937';
+      textarea.style.caretColor = '#1F2937';
     }
+    
+    // Append to body
+    document.body.appendChild(textarea);
+    
+    // Force browser to recalculate styles
+    void textarea.offsetHeight;
+    
+    // Verify styles are applied (for debugging)
+    setTimeout(() => {
+      const computedStyle = window.getComputedStyle(textarea);
+      console.log('Textarea color styles:', {
+        color: computedStyle.color,
+        webkitTextFillColor: computedStyle.webkitTextFillColor,
+        caretColor: computedStyle.caretColor,
+        isDarkMode: currentIsDarkMode
+      });
+    }, 0);
 
     textarea.focus();
     textarea.select();

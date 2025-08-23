@@ -25,3 +25,28 @@ body {
 /* Prevent white flash before app mounts */
 html { background-color: #f6f7fb; }
 html.dark { background-color: #0b1220; }
+
+/* Force textarea text color in dark mode - global override */
+.dark textarea,
+html.dark textarea {
+  color: white !important;
+  -webkit-text-fill-color: white !important;
+  caret-color: white !important;
+}
+
+/* Additional specificity for dynamically created textareas */
+body.dark textarea,
+body .dark textarea,
+.dark body textarea {
+  color: white !important;
+  -webkit-text-fill-color: white !important;
+  caret-color: white !important;
+}
+
+/* Override any browser defaults */
+@media (prefers-color-scheme: dark) {
+  textarea {
+    color: white !important;
+    -webkit-text-fill-color: white !important;
+  }
+}

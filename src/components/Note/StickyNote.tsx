@@ -98,6 +98,7 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
     textarea.style.resize = 'none';
     textarea.style.lineHeight = '1.5';
     textarea.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    textarea.style.color = textColor;
 
     textarea.focus();
     textarea.select();

@@ -327,6 +327,15 @@ export const useSharedCanvasStore = create<SharedCanvasStore>()(
         
         if (!canvasId || !user || userRole !== 'editor') return;
 
+        // Optimistic update - immediately update local state
+        set((state) => ({
+          notes: state.notes.map((note) =>
+            note.id === id
+              ? { ...note, ...updates, updatedAt: new Date() }
+              : note
+          ),
+        }));
+
         const firebaseUpdates: any = { ...updates };
         if (updates.createdAt) {
           firebaseUpdates.createdAt = updates.createdAt.getTime();
@@ -337,7 +346,10 @@ export const useSharedCanvasStore = create<SharedCanvasStore>()(
 
         set({ isSyncing: true });
         updateSharedNote(canvasId, id, firebaseUpdates)
-          .catch((error) => set({ syncError: error as Error }))
+          .catch((error) => {
+            // On error, the Firebase listener will restore the correct state
+            set({ syncError: error as Error });
+          })
           .finally(() => set({ isSyncing: false }));
       },
 

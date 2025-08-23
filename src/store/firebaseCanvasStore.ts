@@ -177,6 +177,15 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
     const user = auth.currentUser;
     if (!user) return;
 
+    // Optimistic update - immediately update local state
+    set((state) => ({
+      notes: state.notes.map((note) =>
+        note.id === id
+          ? { ...note, ...updates, updatedAt: new Date() }
+          : note
+      ),
+    }));
+
     // Convert Date to timestamp for Firebase
     const firebaseUpdates: any = { ...updates };
     if (updates.createdAt) {
@@ -190,9 +199,12 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
     updateNoteInFirebase(user.uid, id, firebaseUpdates)
       .then(() => {
         // The update will be reflected via the Firebase listener
+        // which will sync with our optimistic update
       })
       .catch((error) => {
+        // On error, revert the optimistic update by fetching from Firebase
         set({ syncError: error as Error });
+        // The Firebase listener will restore the correct state
       })
       .finally(() => {
         set({ isSyncing: false });

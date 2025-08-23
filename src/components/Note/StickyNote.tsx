@@ -83,6 +83,11 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
     const textarea = document.createElement('textarea');
     document.body.appendChild(textarea);
 
+    // Apply dark mode class if in dark mode
+    if (currentIsDarkMode) {
+      textarea.className = 'dark-mode-textarea';
+    }
+
     textarea.value = note.content;
     textarea.style.position = 'absolute';
     textarea.style.top = `${areaPosition.y}px`;
@@ -100,6 +105,7 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
     textarea.style.lineHeight = '1.5';
     textarea.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     textarea.style.color = currentTextColor;
+    textarea.style.caretColor = currentTextColor;
 
     textarea.focus();
     textarea.select();

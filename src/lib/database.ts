@@ -1,7 +1,6 @@
 import { 
   ref, 
   onValue, 
-  off, 
   push,
   DataSnapshot,
   serverTimestamp 
@@ -239,7 +238,8 @@ export const subscribeToNotes = (
     callback(data);
   });
   
-  return () => off(notesRef, 'value', unsubscribe);
+  // onValue returns an unsubscribe function directly in Firebase v9
+  return unsubscribe;
 };
 
 export const subscribeToImages = (
@@ -252,7 +252,8 @@ export const subscribeToImages = (
     callback(data);
   });
   
-  return () => off(imagesRef, 'value', unsubscribe);
+  // onValue returns an unsubscribe function directly in Firebase v9
+  return unsubscribe;
 };
 
 export const subscribeToFiles = (
@@ -265,7 +266,8 @@ export const subscribeToFiles = (
     callback(data);
   });
   
-  return () => off(filesRef, 'value', unsubscribe);
+  // onValue returns an unsubscribe function directly in Firebase v9
+  return unsubscribe;
 };
 
 export const subscribeToSettings = (
@@ -278,5 +280,6 @@ export const subscribeToSettings = (
     callback(data);
   });
   
-  return () => off(settingsRef, 'value', unsubscribe);
+  // onValue returns an unsubscribe function directly in Firebase v9
+  return unsubscribe;
 };

@@ -21,8 +21,10 @@ class RealtimeDatabaseBatchManager {
 
   // Add delete operation (set to null in multi-path update)
   addDelete(path: string) {
+    console.log('[BatchManager] addDelete called for path:', path);
     this.updates[path] = null;
     this.deletePaths.push(path);
+    console.log('[BatchManager] Current updates:', Object.keys(this.updates));
     this.scheduleBatch();
   }
 
@@ -48,18 +50,24 @@ class RealtimeDatabaseBatchManager {
   private async executeBatch() {
     const updateCount = Object.keys(this.updates).length;
     
-    if (updateCount === 0) return;
+    if (updateCount === 0) {
+      console.log('[BatchManager] No updates to execute');
+      return;
+    }
     
     const currentUpdates = { ...this.updates };
     const currentDeletes = [...this.deletePaths];
     this.updates = {};
     this.deletePaths = [];
     
-    console.log(`🔄 Executing batch with ${updateCount} operations`);
+    console.log(`🔄 [BatchManager] Executing batch with ${updateCount} operations`);
+    console.log('[BatchManager] Updates to execute:', currentUpdates);
+    console.log('[BatchManager] Delete paths:', currentDeletes);
     
     try {
       // Realtime Database multi-path update
       const rootRef = ref(database);
+      console.log('[BatchManager] Calling Firebase update...');
       await update(rootRef, currentUpdates);
       
       // Track metrics

@@ -51,11 +51,22 @@ export const Toolbar = ({ isSharedMode, showCollaborators, onToggleCollaborators
   }, [notes.length, images.length, files.length]);
 
   const handleDelete = () => {
+    console.log('[Toolbar] handleDelete called', {
+      selectedNoteId,
+      selectedImageId,
+      selectedFileId,
+      deleteNote,
+      isSharedMode
+    });
+    
     if (selectedNoteId) {
+      console.log('[Toolbar] Calling deleteNote for:', selectedNoteId);
       deleteNote(selectedNoteId);
     } else if (selectedImageId) {
+      console.log('[Toolbar] Calling deleteImage for:', selectedImageId);
       deleteImage(selectedImageId);
     } else if (selectedFileId) {
+      console.log('[Toolbar] Calling deleteFile for:', selectedFileId);
       deleteFile(selectedFileId);
     }
   };

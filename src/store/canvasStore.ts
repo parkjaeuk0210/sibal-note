@@ -92,10 +92,15 @@ export const useCanvasStore = create<CanvasStore>()(
       },
       
       deleteNote: (id) => {
-        set((state) => ({
-          notes: state.notes.filter((note) => note.id !== id),
-          selectedNoteId: state.selectedNoteId === id ? null : state.selectedNoteId,
-        }));
+        console.log('[LocalStore] deleteNote called for:', id);
+        set((state) => {
+          const newNotes = state.notes.filter((note) => note.id !== id);
+          console.log('[LocalStore] Notes before:', state.notes.length, 'after:', newNotes.length);
+          return {
+            notes: newNotes,
+            selectedNoteId: state.selectedNoteId === id ? null : state.selectedNoteId,
+          };
+        });
       },
       
       selectNote: (id) => {

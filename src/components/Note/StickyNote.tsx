@@ -64,12 +64,16 @@ export const StickyNote = ({ note }: StickyNoteProps) => {
   };
 
   const handleDoubleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    console.log('[StickyNote] Double-click detected on note:', note.id);
     e.evt.preventDefault();
     e.evt.stopPropagation();
     setIsEditing(true);
     // Create textarea for editing
     const stage = groupRef.current?.getStage();
-    if (!stage) return;
+    if (!stage) {
+      console.log('[StickyNote] No stage found, cannot create textarea');
+      return;
+    }
 
     const textPosition = groupRef.current?.absolutePosition();
     if (!textPosition) return;

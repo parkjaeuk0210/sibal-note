@@ -212,15 +212,25 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   },
 
   deleteNote: (id: string) => {
+    console.log('[FirebaseStore] deleteNote called for:', id);
     const user = auth.currentUser;
-    if (!user) return;
+    console.log('[FirebaseStore] Current user:', user?.uid, 'isAnonymous:', user?.isAnonymous);
+    
+    if (!user) {
+      console.log('[FirebaseStore] No user, aborting delete');
+      return;
+    }
 
     set({ isSyncing: true });
+    console.log('[FirebaseStore] Calling deleteNoteFromFirebase...');
+    
     deleteNoteFromFirebase(user.uid, id)
       .then(() => {
+        console.log('[FirebaseStore] Delete successful, waiting for listener update');
         // The deletion will be reflected via the Firebase listener
       })
       .catch((error) => {
+        console.error('[FirebaseStore] Delete failed:', error);
         set({ syncError: error as Error });
       })
       .finally(() => {
@@ -512,6 +522,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
     // Subscribe to notes
     unsubscribers.push(
       subscribeToNotes(userId, (firebaseNotes) => {
+        console.log('[FirebaseStore] Notes listener fired, received:', Object.keys(firebaseNotes).length, 'notes');
         const notes = Object.entries(firebaseNotes).map(([id, note]) => ({
           ...firebaseNoteToLocal(note),
           id,

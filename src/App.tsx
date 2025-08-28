@@ -69,13 +69,23 @@ function App() {
 
       // Delete or Backspace for deleting selected note/image/file
       if (e.key === 'Delete' || e.key === 'Backspace') {
+        console.log('[App] Delete/Backspace key pressed', {
+          selectedNoteId,
+          selectedImageId,
+          selectedFileId
+        });
         e.preventDefault();
         if (selectedNoteId) {
+          console.log('[App] Calling deleteNote for:', selectedNoteId);
           deleteNote(selectedNoteId);
         } else if (selectedImageId) {
+          console.log('[App] Calling deleteImage for:', selectedImageId);
           deleteImage(selectedImageId);
         } else if (selectedFileId) {
+          console.log('[App] Calling deleteFile for:', selectedFileId);
           deleteFile(selectedFileId);
+        } else {
+          console.log('[App] No item selected to delete');
         }
       }
       // Ctrl+Z for undo

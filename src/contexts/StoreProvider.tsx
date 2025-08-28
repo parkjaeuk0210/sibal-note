@@ -32,6 +32,14 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, [sharedStore.canvasId]);
 
   useEffect(() => {
+    console.log('[StoreProvider] Auth state changed:', {
+      user: user?.uid,
+      isAnonymous: user?.isAnonymous,
+      loading,
+      isFirebaseMode,
+      isSharedMode
+    });
+    
     // Check for pending share token after login
     if (user && !loading) {
       const pendingToken = sessionStorage.getItem('pendingShareToken');
@@ -44,11 +52,14 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
     
     if (isSharedMode) {
+      console.log('[StoreProvider] Using shared mode');
       // Already in shared mode, no need to do anything
     } else if (isFirebaseMode && user) {
+      console.log('[StoreProvider] Initializing Firebase mode for user:', user.uid);
       // Initialize Firebase sync
       firebaseStore.initializeFirebaseSync(user.uid);
     } else {
+      console.log('[StoreProvider] Using local mode (no auth or anonymous)');
       // Cleanup Firebase sync when logged out
       firebaseStore.cleanupFirebaseSync();
     }
@@ -90,11 +101,17 @@ export function useAppStore<T>(selector: (state: AppStore) => T): T {
   const firebaseResult = useFirebaseCanvasStore(selector as (state: FirebaseCanvasStore) => T);
   const sharedResult = useSharedCanvasStore(selector as (state: SharedCanvasStore) => T);
   
+  // Debug logging for store selection
+  const selectorName = selector.toString().match(/state\.(\w+)/)?.[1] || 'unknown';
+  
   if (isSharedMode) {
+    console.log(`[StoreProvider] Using SharedStore for: ${selectorName}`);
     return sharedResult;
   } else if (isFirebaseMode) {
+    console.log(`[StoreProvider] Using FirebaseStore for: ${selectorName}`);
     return firebaseResult;
   } else {
+    console.log(`[StoreProvider] Using LocalStore for: ${selectorName}`);
     return localResult;
   }
 }

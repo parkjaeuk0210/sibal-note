@@ -29,6 +29,12 @@ function App() {
   const redo = useAppStore((state) => state.redo);
   const canUndo = useHistoryStore((state) => state.canUndo());
   const canRedo = useHistoryStore((state) => state.canRedo());
+  const selectedNoteId = useAppStore((state) => state.selectedNoteId);
+  const selectedImageId = useAppStore((state) => state.selectedImageId);
+  const selectedFileId = useAppStore((state) => state.selectedFileId);
+  const deleteNote = useAppStore((state) => state.deleteNote);
+  const deleteImage = useAppStore((state) => state.deleteImage);
+  const deleteFile = useAppStore((state) => state.deleteFile);
   
   // Check if we need to show login modal from share link
   useEffect(() => {
@@ -52,7 +58,7 @@ function App() {
     }
   }, [user]);
 
-  // Keyboard shortcuts for undo/redo
+  // Keyboard shortcuts for undo/redo and delete
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Check if user is typing in an input or textarea
@@ -61,8 +67,19 @@ function App() {
         return;
       }
 
+      // Delete or Backspace for deleting selected note/image/file
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault();
+        if (selectedNoteId) {
+          deleteNote(selectedNoteId);
+        } else if (selectedImageId) {
+          deleteImage(selectedImageId);
+        } else if (selectedFileId) {
+          deleteFile(selectedFileId);
+        }
+      }
       // Ctrl+Z for undo
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+      else if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
         undo();
       }
@@ -75,7 +92,7 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo]);
+  }, [undo, redo, selectedNoteId, selectedImageId, selectedFileId, deleteNote, deleteImage, deleteFile]);
 
   // Removed automatic login modal - users can now use the app freely
   // and sign in when they want using the Sign In button

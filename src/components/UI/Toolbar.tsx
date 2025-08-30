@@ -7,6 +7,7 @@ import { getLocalStorageUsagePercent, isLocalStorageNearLimit } from '../../util
 import { useAuth } from '../../contexts/AuthContext';
 import { ShareModal } from '../Sharing/ShareModal';
 import { useSharedCanvasStore } from '../../store/sharedCanvasStore';
+import { toast } from '../../utils/toast';
 
 interface ToolbarProps {
   isSharedMode?: boolean;
@@ -90,7 +91,7 @@ export const Toolbar = ({ isSharedMode, showCollaborators, onToggleCollaborators
           try {
             // Check storage before adding
             if (isLocalStorageNearLimit()) {
-              alert('저장 공간이 부족합니다. 일부 항목을 삭제한 후 다시 시도해주세요.');
+              toast.error('저장 공간이 부족합니다. 일부 항목을 삭제한 후 다시 시도해주세요.');
               return;
             }
             
@@ -100,7 +101,7 @@ export const Toolbar = ({ isSharedMode, showCollaborators, onToggleCollaborators
             
             // Check if compressed size is reasonable for localStorage
             if (compressedSize > 1024 * 1024) { // 1MB limit per image
-              alert(`이미지 "${file.name}"의 크기가 너무 큽니다 (${formatBytes(compressedSize)}). 더 작은 이미지를 사용해주세요.`);
+              toast.warning(`이미지 "${file.name}"의 크기가 너무 큽니다 (${formatBytes(compressedSize)}). 더 작은 이미지를 사용해주세요.`);
               return;
             }
             
@@ -142,7 +143,7 @@ export const Toolbar = ({ isSharedMode, showCollaborators, onToggleCollaborators
             originalImg.src = url;
           } catch (error) {
             console.error('Image compression failed:', error);
-            alert(`이미지 처리 중 오류가 발생했습니다: ${file.name}`);
+            toast.error(`이미지 처리 중 오류가 발생했습니다: ${file.name}`);
           }
         } else {
           // Handle other files
@@ -153,7 +154,7 @@ export const Toolbar = ({ isSharedMode, showCollaborators, onToggleCollaborators
           // Check file size for non-images too
           const fileDataSize = getDataUrlSize(url);
           if (fileDataSize > 500 * 1024) { // 500KB limit for other files
-            alert(`파일 "${file.name}"의 크기가 너무 큽니다 (${formatBytes(fileDataSize)}). 더 작은 파일을 사용해주세요.`);
+            toast.warning(`파일 "${file.name}"의 크기가 너무 큽니다 (${formatBytes(fileDataSize)}). 더 작은 파일을 사용해주세요.`);
             return;
           }
           

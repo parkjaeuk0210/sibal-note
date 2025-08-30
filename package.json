@@ -31,7 +31,8 @@
     "sharp-cli": "^5.2.0",
     "ts-jest": "^29.4.0",
     "typescript": "^5.8.3",
-    "vite": "^7.0.5"
+    "vite": "^7.0.5",
+    "vite-plugin-pwa": "^0.20.0"
   },
   "dependencies": {
     "@use-gesture/react": "^10.3.1",

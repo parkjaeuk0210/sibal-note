@@ -4,6 +4,7 @@ import { useAppStore } from '../../contexts/StoreProvider';
 import { useAuth } from '../../contexts/AuthContext';
 import { ParticipantRole } from '../../types/sharing';
 import { checkRateLimit, RATE_LIMITS, formatRetryMessage } from '../../utils/rateLimit';
+import { toast } from '../../utils/toast';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -46,7 +47,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose }) => {
       setCanvasName('');
     } catch (error) {
       console.error('Failed to create shared canvas:', error);
-      alert('캔버스 생성에 실패했습니다.');
+      toast.error('캔버스 생성에 실패했습니다.');
     } finally {
       setIsCreating(false);
     }
@@ -70,7 +71,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose }) => {
       setCopySuccess(false);
     } catch (error) {
       console.error('Failed to generate share link:', error);
-      alert('공유 링크 생성에 실패했습니다.');
+      toast.error('공유 링크 생성에 실패했습니다.');
     }
   };
 

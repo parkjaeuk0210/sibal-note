@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useSharedCanvasStore } from '../../store/sharedCanvasStore';
 import { useAuth } from '../../contexts/AuthContext';
 import { ParticipantRole } from '../../types/sharing';
+import { toast } from '../../utils/toast';
 
 interface CollaboratorsListProps {
   onClose: () => void;
@@ -50,7 +51,7 @@ export const CollaboratorsList: React.FC<CollaboratorsListProps> = ({ onClose })
       try {
         await removeParticipant(participantId);
       } catch (error) {
-        alert('참여자 제거에 실패했습니다.');
+        toast.error('참여자 제거에 실패했습니다.');
       }
     }
   };
@@ -59,7 +60,7 @@ export const CollaboratorsList: React.FC<CollaboratorsListProps> = ({ onClose })
     try {
       await updateParticipantRole(participantId, newRole);
     } catch (error) {
-      alert('권한 변경에 실패했습니다.');
+      toast.error('권한 변경에 실패했습니다.');
     }
   };
 

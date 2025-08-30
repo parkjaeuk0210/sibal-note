@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { logout, signInWithGoogle } from '../../utils/auth';
+import { toast } from '../../utils/toast';
 import { useTranslation } from '../../contexts/I18nContext';
 import { linkWithPopup } from 'firebase/auth';
 import { googleProvider } from '../../lib/firebase';
@@ -26,15 +27,14 @@ export const UserProfile: React.FC = () => {
       // Link anonymous account with Google
       await linkWithPopup(user, googleProvider);
       setShowMenu(false);
-      // Show success message (could add a toast notification here)
-      alert('계정이 성공적으로 업그레이드되었습니다!');
+      toast.success('계정이 성공적으로 업그레이드되었습니다!');
     } catch (error: any) {
       console.error('Account upgrade failed:', error);
       if (error.code === 'auth/credential-already-in-use') {
         // If the Google account is already in use, sign in with it instead
         await signInWithGoogle();
       } else {
-        alert('계정 업그레이드에 실패했습니다. 다시 시도해주세요.');
+        toast.error('계정 업그레이드에 실패했습니다. 다시 시도해주세요.');
       }
     } finally {
       setIsUpgrading(false);

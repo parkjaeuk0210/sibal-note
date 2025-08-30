@@ -44,7 +44,7 @@
       "$token": {
         ".read": true,
         ".write": "!data.exists() || (auth != null && data.child('createdBy').val() === auth.uid)",
-        ".validate": "newData.hasChildren(['canvasId', 'createdBy', 'createdAt', 'permissions'])"
+        ".validate": "newData.hasChildren(['canvasId','createdBy','createdAt','role']) && (newData.child('role').val() === 'viewer' || newData.child('role').val() === 'editor')"
       }
     }
   }

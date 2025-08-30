@@ -164,9 +164,30 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
     };
 
     set({ isSyncing: true });
+    // Request an id from Firebase (client-side generated), then optimistic update
     saveNoteToFirebase(userId, newNote)
-      .then(() => {
-        // The note will be added to local state via the Firebase listener
+      .then((newId) => {
+        // Optimistically add to local state for immediate UX
+        set((s) => ({
+          notes: [
+            ...s.notes,
+            {
+              id: newId,
+              content: '',
+              x,
+              y,
+              width: 200,
+              height: 200,
+              color: newNote.color as NoteColor,
+              zIndex: maxZIndex + 1,
+              createdAt: new Date(newNote.createdAt),
+              updatedAt: new Date(newNote.updatedAt),
+            },
+          ],
+          selectedNoteId: newId,
+          selectedImageId: null,
+          selectedFileId: null,
+        }));
       })
       .catch((error) => {
         set({ syncError: error as Error });
@@ -226,7 +247,12 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
 
     set({ isSyncing: true });
     console.log('[FirebaseStore] Calling deleteNoteFromFirebase...');
-    
+    // Optimistically remove from local state
+    set((s) => ({
+      notes: s.notes.filter((n) => n.id !== id),
+      selectedNoteId: s.selectedNoteId === id ? null : s.selectedNoteId,
+    }));
+
     deleteNoteFromFirebase(userId, id)
       .then(() => {
         console.log('[FirebaseStore] Delete successful, waiting for listener update');
@@ -235,6 +261,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
       .catch((error) => {
         console.error('[FirebaseStore] Delete failed:', error);
         set({ syncError: error as Error });
+        // On error, data will be restored by listener on next sync
       })
       .finally(() => {
         set({ isSyncing: false });

@@ -317,6 +317,29 @@ export const useSharedCanvasStore = create<SharedCanvasStore>()(
 
         set({ isSyncing: true });
         saveSharedNote(canvasId, newNote, user.uid)
+          .then((newId) => {
+            // Optimistically add to local state for immediate feedback
+            set((s) => ({
+              notes: [
+                ...s.notes,
+                {
+                  id: newId,
+                  content: '',
+                  x,
+                  y,
+                  width: 200,
+                  height: 200,
+                  color: newNote.color as NoteColor,
+                  zIndex: maxZIndex + 1,
+                  createdAt: new Date(newNote.createdAt),
+                  updatedAt: new Date(newNote.updatedAt),
+                },
+              ],
+              selectedNoteId: newId,
+              selectedImageId: null,
+              selectedFileId: null,
+            }));
+          })
           .catch((error) => set({ syncError: error as Error }))
           .finally(() => set({ isSyncing: false }));
       },
@@ -358,6 +381,12 @@ export const useSharedCanvasStore = create<SharedCanvasStore>()(
         if (!canvasId || userRole !== 'editor') return;
 
         set({ isSyncing: true });
+        // Optimistically remove locally
+        set((s) => ({
+          notes: s.notes.filter(n => n.id !== id),
+          selectedNoteId: s.selectedNoteId === id ? null : s.selectedNoteId,
+        }));
+
         deleteSharedNote(canvasId, id)
           .catch((error) => set({ syncError: error as Error }))
           .finally(() => set({ isSyncing: false }));

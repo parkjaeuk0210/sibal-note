@@ -31,6 +31,8 @@ export interface FirebaseCanvasStore {
   selectedImageId: string | null;
   selectedFileId: string | null;
   isDarkMode: boolean;
+  // Auth cache for PWA environments
+  currentUserId: string | null;
   
   // Firebase sync state
   isSyncing: boolean;
@@ -130,6 +132,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   selectedImageId: null,
   selectedFileId: null,
   isDarkMode: false,
+  currentUserId: null,
   isSyncing: false,
   syncError: null,
   unsubscribers: [],
@@ -141,8 +144,8 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
 
   // Note actions
   addNote: (x: number, y: number) => {
-    const user = auth.currentUser;
-    if (!user) return;
+    const userId = get().currentUserId || auth.currentUser?.uid || null;
+    if (!userId) return;
 
     const state = get();
     // Get the maximum zIndex from all notes
@@ -161,7 +164,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
     };
 
     set({ isSyncing: true });
-    saveNoteToFirebase(user.uid, newNote)
+    saveNoteToFirebase(userId, newNote)
       .then(() => {
         // The note will be added to local state via the Firebase listener
       })
@@ -174,8 +177,8 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   },
 
   updateNote: (id: string, updates: Partial<Note>) => {
-    const user = auth.currentUser;
-    if (!user) return;
+    const userId = get().currentUserId || auth.currentUser?.uid || null;
+    if (!userId) return;
 
     // Optimistic update - immediately update local state
     set((state) => ({
@@ -196,7 +199,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
     }
 
     set({ isSyncing: true });
-    updateNoteInFirebase(user.uid, id, firebaseUpdates)
+    updateNoteInFirebase(userId, id, firebaseUpdates)
       .then(() => {
         // The update will be reflected via the Firebase listener
         // which will sync with our optimistic update
@@ -213,10 +216,10 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
 
   deleteNote: (id: string) => {
     console.log('[FirebaseStore] deleteNote called for:', id);
-    const user = auth.currentUser;
-    console.log('[FirebaseStore] Current user:', user?.uid, 'isAnonymous:', user?.isAnonymous);
+    const userId = get().currentUserId || auth.currentUser?.uid || null;
+    console.log('[FirebaseStore] Current userId:', userId);
     
-    if (!user) {
+    if (!userId) {
       console.log('[FirebaseStore] No user, aborting delete');
       return;
     }
@@ -224,7 +227,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
     set({ isSyncing: true });
     console.log('[FirebaseStore] Calling deleteNoteFromFirebase...');
     
-    deleteNoteFromFirebase(user.uid, id)
+    deleteNoteFromFirebase(userId, id)
       .then(() => {
         console.log('[FirebaseStore] Delete successful, waiting for listener update');
         // The deletion will be reflected via the Firebase listener
@@ -239,8 +242,8 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   },
 
   selectNote: (id: string | null) => {
-    const user = auth.currentUser;
-    if (!user) {
+    const userId = get().currentUserId || auth.currentUser?.uid || null;
+    if (!userId) {
       set({ selectedNoteId: id, selectedImageId: null, selectedFileId: null });
       return;
     }
@@ -269,7 +272,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
         });
         
         // Then update Firebase
-        updateNoteInFirebase(user.uid, id, { zIndex: maxZIndex + 1 })
+        updateNoteInFirebase(userId, id, { zIndex: maxZIndex + 1 })
           .catch((error) => {
             console.error('Failed to update note zIndex:', error);
           });
@@ -281,8 +284,8 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
 
   // Image actions (similar pattern)
   addImage: (image: Omit<CanvasImage, 'id' | 'createdAt'>) => {
-    const user = auth.currentUser;
-    if (!user) return;
+    const userId = get().currentUserId || auth.currentUser?.uid || null;
+    if (!userId) return;
 
     // TODO: Upload image to Firebase Storage first
     // For now, we'll store the data URL
@@ -301,7 +304,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
     };
 
     set({ isSyncing: true });
-    saveImageToFirebase(user.uid, firebaseImage)
+    saveImageToFirebase(userId, firebaseImage)
       .then(() => {
         // Image will be added to local state via the Firebase listener
       })
@@ -314,8 +317,8 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   },
 
   updateImage: (id: string, updates: Partial<CanvasImage>) => {
-    const user = auth.currentUser;
-    if (!user) return;
+    const userId = get().currentUserId || auth.currentUser?.uid || null;
+    if (!userId) return;
 
     // Convert Date to timestamp for Firebase
     const firebaseUpdates: any = { ...updates };
@@ -324,7 +327,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
     }
 
     set({ isSyncing: true });
-    updateImageInFirebase(user.uid, id, firebaseUpdates)
+    updateImageInFirebase(userId, id, firebaseUpdates)
       .then(() => {
         // The update will be reflected via the Firebase listener
       })
@@ -337,11 +340,11 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   },
 
   deleteImage: (id: string) => {
-    const user = auth.currentUser;
-    if (!user) return;
+    const userId = get().currentUserId || auth.currentUser?.uid || null;
+    if (!userId) return;
 
     set({ isSyncing: true });
-    deleteImageFromFirebase(user.uid, id)
+    deleteImageFromFirebase(userId, id)
       .then(() => {
         // The deletion will be reflected via the Firebase listener
       })
@@ -359,8 +362,8 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
 
   // File actions (similar pattern)
   addFile: (file: Omit<CanvasFile, 'id' | 'createdAt'>) => {
-    const user = auth.currentUser;
-    if (!user) return;
+    const userId = get().currentUserId || auth.currentUser?.uid || null;
+    if (!userId) return;
 
     const firebaseFile: Omit<FirebaseFile, 'id' | 'userId' | 'deviceId'> = {
       url: file.url,
@@ -377,7 +380,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
     };
 
     set({ isSyncing: true });
-    saveFileToFirebase(user.uid, firebaseFile)
+    saveFileToFirebase(userId, firebaseFile)
       .then(() => {
         // File will be added to local state via the Firebase listener
       })
@@ -390,8 +393,8 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   },
 
   updateFile: (id: string, updates: Partial<CanvasFile>) => {
-    const user = auth.currentUser;
-    if (!user) return;
+    const userId = get().currentUserId || auth.currentUser?.uid || null;
+    if (!userId) return;
 
     // Convert Date to timestamp for Firebase
     const firebaseUpdates: any = { ...updates };
@@ -400,7 +403,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
     }
 
     set({ isSyncing: true });
-    updateFileInFirebase(user.uid, id, firebaseUpdates)
+    updateFileInFirebase(userId, id, firebaseUpdates)
       .then(() => {
         // The update will be reflected via the Firebase listener
       })
@@ -413,11 +416,11 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   },
 
   deleteFile: (id: string) => {
-    const user = auth.currentUser;
-    if (!user) return;
+    const userId = get().currentUserId || auth.currentUser?.uid || null;
+    if (!userId) return;
 
     set({ isSyncing: true });
-    deleteFileFromFirebase(user.uid, id)
+    deleteFileFromFirebase(userId, id)
       .then(() => {
         // The deletion will be reflected via the Firebase listener
       })
@@ -439,17 +442,17 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   },
 
   clearCanvas: () => {
-    const user = auth.currentUser;
-    if (!user) return;
+    const userId = get().currentUserId || auth.currentUser?.uid || null;
+    if (!userId) return;
 
     set({ isSyncing: true });
     // Delete all notes, images, and files
     const { notes, images, files } = get();
     
     Promise.all([
-      ...notes.map(note => deleteNoteFromFirebase(user.uid, note.id)),
-      ...images.map(image => deleteImageFromFirebase(user.uid, image.id)),
-      ...files.map(file => deleteFileFromFirebase(user.uid, file.id)),
+      ...notes.map(note => deleteNoteFromFirebase(userId, note.id)),
+      ...images.map(image => deleteImageFromFirebase(userId, image.id)),
+      ...files.map(file => deleteFileFromFirebase(userId, file.id)),
     ])
       .then(() => {
         // All deletions will be reflected via the Firebase listeners
@@ -466,18 +469,18 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
     const newDarkMode = !get().isDarkMode;
     set({ isDarkMode: newDarkMode });
     
-    const user = auth.currentUser;
-    if (user) {
-      saveSettings(user.uid, { isDarkMode: newDarkMode });
+    const userId = get().currentUserId || auth.currentUser?.uid || null;
+    if (userId) {
+      saveSettings(userId, { isDarkMode: newDarkMode });
     }
   },
 
   setDarkMode: (isDark: boolean) => {
     set({ isDarkMode: isDark });
     
-    const user = auth.currentUser;
-    if (user) {
-      saveSettings(user.uid, { isDarkMode: isDark });
+    const userId = get().currentUserId || auth.currentUser?.uid || null;
+    if (userId) {
+      saveSettings(userId, { isDarkMode: isDark });
     }
   },
 
@@ -489,7 +492,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
     const unsubscribers: (() => void)[] = [];
 
     // Reset readiness flags
-    set({ notesReady: false, imagesReady: false, filesReady: false, settingsReady: false, remoteReady: false });
+    set({ currentUserId: userId, notesReady: false, imagesReady: false, filesReady: false, settingsReady: false, remoteReady: false });
 
     // Load cached remote snapshot for immediate UX (if present)
     try {
@@ -661,7 +664,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   cleanupFirebaseSync: () => {
     const { unsubscribers } = get();
     unsubscribers.forEach(unsubscribe => unsubscribe());
-    set({ unsubscribers: [], notesReady: false, imagesReady: false, filesReady: false, settingsReady: false, remoteReady: false });
+    set({ currentUserId: null, unsubscribers: [], notesReady: false, imagesReady: false, filesReady: false, settingsReady: false, remoteReady: false });
   },
   
   // These will be provided by the undoable middleware

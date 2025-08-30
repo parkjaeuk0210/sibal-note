@@ -145,7 +145,14 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   // Note actions
   addNote: (x: number, y: number) => {
     const userId = get().currentUserId || auth.currentUser?.uid || null;
-    if (!userId) return;
+    if (!userId) {
+      try {
+        // Fallback to local store if auth is not ready (PWA edge cases)
+        const { useCanvasStore } = require('./canvasStore');
+        useCanvasStore.getState().addNote(x, y);
+      } catch {}
+      return;
+    }
 
     const state = get();
     // Get the maximum zIndex from all notes
@@ -241,7 +248,11 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
     console.log('[FirebaseStore] Current userId:', userId);
     
     if (!userId) {
-      console.log('[FirebaseStore] No user, aborting delete');
+      console.log('[FirebaseStore] No user, falling back to local delete');
+      try {
+        const { useCanvasStore } = require('./canvasStore');
+        useCanvasStore.getState().deleteNote(id);
+      } catch {}
       return;
     }
 

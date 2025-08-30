@@ -26,30 +26,35 @@ export const useCanvasHandlers = ({
   addNote,
   setIsCanvasDragging,
 }: UseCanvasHandlersProps) => {
-  const handleStageClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
-    const target = e.target;
-    
-    // If clicking on stage (not on a note)
-    if (target === stageRef.current || target.parent?.className === 'Layer') {
-      selectNote(null);
-      selectImage(null);
-      selectFile(null);
-      // Also ensure canvas dragging is stopped
-      setIsCanvasDragging(false);
-    }
-  }, [selectNote, selectImage, selectFile, setIsCanvasDragging, stageRef]);
-
-  const handleStageDoubleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
-    // Only add note if clicking on stage itself
-    if (e.target !== e.currentTarget) return;
-    
+  const handleStageClick = useCallback((_e: Konva.KonvaEventObject<MouseEvent>) => {
     const stage = stageRef.current;
     if (!stage) return;
 
     const pointer = stage.getPointerPosition();
     if (!pointer) return;
 
-    // Convert screen coordinates to canvas coordinates
+    // Only clear selection when clicking empty space (no shape under pointer)
+    const hit = stage.getIntersection(pointer);
+    if (!hit) {
+      selectNote(null);
+      selectImage(null);
+      selectFile(null);
+      setIsCanvasDragging(false);
+    }
+  }, [selectNote, selectImage, selectFile, setIsCanvasDragging, stageRef]);
+
+  const handleStageDoubleClick = useCallback((_e: Konva.KonvaEventObject<MouseEvent>) => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const pointer = stage.getPointerPosition();
+    if (!pointer) return;
+
+    // If there is a shape under pointer, treat as editing that shape – do not add a note
+    const hit = stage.getIntersection(pointer);
+    if (hit) return;
+
+    // Convert screen coordinates to canvas coordinates (empty area)
     const x = (pointer.x - viewport.x) / viewport.scale;
     const y = (pointer.y - viewport.y) / viewport.scale;
 

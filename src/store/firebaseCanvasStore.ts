@@ -20,6 +20,7 @@ import { Note, CanvasImage, CanvasFile, Viewport, NoteColor } from '../types';
 import { FirebaseNote, FirebaseImage, FirebaseFile } from '../types/firebase';
 import { auth } from '../lib/firebase';
 import { migrationManager } from '../lib/migrationManager';
+import { useCanvasStore } from './canvasStore';
 
 export interface FirebaseCanvasStore {
   // Local state (same as before)
@@ -146,11 +147,8 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
   addNote: (x: number, y: number) => {
     const userId = get().currentUserId || auth.currentUser?.uid || null;
     if (!userId) {
-      try {
-        // Fallback to local store if auth is not ready (PWA edge cases)
-        const { useCanvasStore } = require('./canvasStore');
-        useCanvasStore.getState().addNote(x, y);
-      } catch {}
+      // Fallback to local store if auth is not ready (PWA edge cases)
+      useCanvasStore.getState().addNote(x, y);
       return;
     }
 
@@ -249,10 +247,7 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
     
     if (!userId) {
       console.log('[FirebaseStore] No user, falling back to local delete');
-      try {
-        const { useCanvasStore } = require('./canvasStore');
-        useCanvasStore.getState().deleteNote(id);
-      } catch {}
+      useCanvasStore.getState().deleteNote(id);
       return;
     }
 

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { undoable } from './middleware/undoable';
+import { toast } from '../utils/toast';
 import { Note, NoteColor, Viewport, CanvasImage, CanvasFile } from '../types';
 
 export interface CanvasStore {
@@ -154,7 +155,7 @@ export const useCanvasStore = create<CanvasStore>()(
             return newState;
           } catch (e) {
             console.error('Failed to save image to localStorage:', e);
-            try { const { toast } = require('../utils/toast'); toast.error('저장 공간이 부족합니다. 일부 이미지를 삭제하고 다시 시도해주세요.'); } catch {}
+            toast.error('저장 공간이 부족합니다. 일부 이미지를 삭제하고 다시 시도해주세요.');
             
             // Don't add the image if we can't save it
             return state;
@@ -207,7 +208,7 @@ export const useCanvasStore = create<CanvasStore>()(
             return newState;
           } catch (e) {
             console.error('Failed to save file to localStorage:', e);
-            try { const { toast } = require('../utils/toast'); toast.error('저장 공간이 부족합니다. 일부 파일을 삭제하고 다시 시도해주세요.'); } catch {}
+            toast.error('저장 공간이 부족합니다. 일부 파일을 삭제하고 다시 시도해주세요.');
             
             // Don't add the file if we can't save it
             return state;

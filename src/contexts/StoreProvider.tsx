@@ -101,17 +101,12 @@ export function useAppStore<T>(selector: (state: AppStore) => T): T {
   const firebaseResult = useFirebaseCanvasStore(selector as (state: FirebaseCanvasStore) => T);
   const sharedResult = useSharedCanvasStore(selector as (state: SharedCanvasStore) => T);
   
-  // Debug logging for store selection
-  const selectorName = selector.toString().match(/state\.(\w+)/)?.[1] || 'unknown';
-  
+  // Store selection without excessive logging in production
   if (isSharedMode) {
-    console.log(`[StoreProvider] Using SharedStore for: ${selectorName}`);
     return sharedResult;
   } else if (isFirebaseMode) {
-    console.log(`[StoreProvider] Using FirebaseStore for: ${selectorName}`);
     return firebaseResult;
   } else {
-    console.log(`[StoreProvider] Using LocalStore for: ${selectorName}`);
     return localResult;
   }
 }

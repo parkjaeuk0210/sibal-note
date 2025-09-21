@@ -96,7 +96,7 @@ export const InfiniteCanvas = React.memo(() => {
     return cleanup;
   }, [cleanup]);
 
-  // Prevent Safari's default pinch zoom
+  // Prevent Safari's default pinch zoom (restore original behavior)
   useEffect(() => {
     const preventDefault = (e: Event) => e.preventDefault();
     document.addEventListener('gesturestart', preventDefault);

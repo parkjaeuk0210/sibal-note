@@ -32,7 +32,7 @@ if (hasFirebaseConfig) {
   database = getDatabase(app);
   storage = getStorage(app);
 } else {
-  console.warn('Firebase configuration not found. Running in local-only mode.');
+  console.warn('❌ Firebase configuration not found. Running in local-only mode.');
 }
 
 // Export Firebase services

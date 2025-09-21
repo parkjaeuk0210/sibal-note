@@ -558,7 +558,6 @@ export const useFirebaseCanvasStore = create<FirebaseCanvasStore>()(
     // Subscribe to notes
     unsubscribers.push(
       subscribeToNotes(userId, (firebaseNotes) => {
-        console.log('[FirebaseStore] Notes listener fired, received:', Object.keys(firebaseNotes).length, 'notes');
         const notes = Object.entries(firebaseNotes).map(([id, note]) => ({
           ...firebaseNoteToLocal(note),
           id,

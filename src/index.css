@@ -83,10 +83,10 @@ body .dark textarea,
   caret-color: white !important;
 }
 
-/* Override any browser defaults */
-@media (prefers-color-scheme: dark) {
-  textarea {
-    color: white !important;
-    -webkit-text-fill-color: white !important;
-  }
+/* Ensure light mode uses dark text while typing */
+html:not(.dark) textarea {
+  color: #111827 !important;           /* Tailwind gray-900 */
+  -webkit-text-fill-color: #111827 !important;
+  caret-color: #111827 !important;
 }
+

@@ -181,7 +181,7 @@ export const JoystickButton = () => {
 
   return (
     <div 
-      className="fixed right-6 bottom-24"
+      className="fixed right-6 bottom-6"
       style={{ zIndex: 9999 }}
     >
       {isDragging && (

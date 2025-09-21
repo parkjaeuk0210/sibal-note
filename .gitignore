@@ -31,3 +31,4 @@ dist-ssr
 
 # Local documentation
 DEPLOYMENT_GUIDE.md
+.env*.local

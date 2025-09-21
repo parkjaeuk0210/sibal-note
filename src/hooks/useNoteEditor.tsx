@@ -82,9 +82,10 @@ const EditorPortal = ({ note, stageScale, position, onSave, onClose }: EditorPor
           resize: 'none',
           lineHeight: `${LINE_HEIGHT}`,
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif',
-          color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.85)',
+          color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : '#111827',
+          caretColor: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : '#111827',
           // Force text color in WebKit browsers
-          WebkitTextFillColor: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.85)',
+          WebkitTextFillColor: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : '#111827',
         } as React.CSSProperties}
       />
     </div>,

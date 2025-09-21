@@ -65,9 +65,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose }) => {
     
     try {
       const link = await generateShareLink(shareRole, linkExpiry);
-      // Make sure the link includes the full URL
-      const fullLink = link.startsWith('http') ? link : `${window.location.origin}${link}`;
-      setShareLink(fullLink);
+      setShareLink(link);
       setCopySuccess(false);
     } catch (error) {
       console.error('Failed to generate share link:', error);

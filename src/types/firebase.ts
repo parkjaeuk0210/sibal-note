@@ -54,3 +54,22 @@ export interface FirebaseUserData {
     lastSyncTime: number;
   };
 }
+
+export interface FirebaseChatMessage {
+  id: string;
+  userId: string;
+  content: string;
+  createdAt: number;
+  displayName?: string;
+  photoURL?: string;
+}
+
+export interface FirebaseUserProfile {
+  displayName?: string;
+  username?: string;
+  bio?: string;
+  website?: string;
+  accentColor?: string;
+  photoURL?: string;
+  updatedAt?: number;
+}

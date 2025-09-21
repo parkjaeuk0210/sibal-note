@@ -8,7 +8,10 @@ import {
   update,
   DataSnapshot,
   serverTimestamp,
-  onDisconnect
+  onDisconnect,
+  query,
+  orderByChild,
+  limitToLast
 } from 'firebase/database';
 import { database } from './firebase';
 import { 
@@ -18,7 +21,7 @@ import {
   ParticipantRole,
   PresenceData
 } from '../types/sharing';
-import { FirebaseNote, FirebaseImage, FirebaseFile } from '../types/firebase';
+import { FirebaseNote, FirebaseImage, FirebaseFile, FirebaseChatMessage } from '../types/firebase';
 
 // Generate unique token with crypto-secure random
 const generateShareToken = () => {
@@ -47,6 +50,7 @@ const getSharedFilesPath = (canvasId: string) => `${getSharedCanvasPath(canvasId
 const getParticipantsPath = (canvasId: string) => `${getSharedCanvasPath(canvasId)}/participants`;
 const getPresencePath = (canvasId: string) => `${getSharedCanvasPath(canvasId)}/presence`;
 const getShareTokenPath = (token: string) => `share_tokens/${token}`;
+const getChatMessagesPath = (canvasId: string) => `${getSharedCanvasPath(canvasId)}/chat/messages`;
 
 // Create a new shared canvas
 export const createSharedCanvas = async (
@@ -410,6 +414,41 @@ export const subscribeToPresence = (
   });
   
   return () => off(presenceRef, 'value', unsubscribe);
+};
+
+// Chat helpers
+export const subscribeToSharedChatMessages = (
+  canvasId: string,
+  callback: (messages: Record<string, FirebaseChatMessage>) => void
+) => {
+  const messagesQuery = query(
+    ref(database, getChatMessagesPath(canvasId)),
+    orderByChild('createdAt'),
+    limitToLast(200)
+  );
+
+  const unsubscribe = onValue(messagesQuery, (snapshot: DataSnapshot) => {
+    const data = snapshot.val() || {};
+    callback(data);
+  });
+
+  return () => off(messagesQuery, 'value', unsubscribe);
+};
+
+export const sendSharedChatMessage = async (
+  canvasId: string,
+  message: Omit<FirebaseChatMessage, 'id'>
+) => {
+  const messagesRef = ref(database, getChatMessagesPath(canvasId));
+  const newMessageRef = push(messagesRef);
+
+  await set(newMessageRef, {
+    ...message,
+    id: newMessageRef.key,
+    createdAt: message.createdAt ?? Date.now(),
+  });
+
+  return newMessageRef.key;
 };
 
 // CRUD operations for shared canvas items

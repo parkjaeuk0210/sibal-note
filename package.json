@@ -1,7 +1,7 @@
 {
-  "name": "interectnote1",
+  "name": "sibal-note",
   "version": "1.0.0",
-  "description": "",
+  "description": "Social media platform for infinite canvas note sharing",
   "type": "module",
   "scripts": {
     "dev": "vite",

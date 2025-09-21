@@ -54,3 +54,5 @@ export interface CanvasImage {
   fileSize: number;
   createdAt: Date;
 }
+
+export * from './user';

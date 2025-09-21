@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { InfiniteCanvas } from './components/Canvas/InfiniteCanvas';
 import { Toolbar } from './components/UI/Toolbar';
-import { FloatingButton } from './components/UI/FloatingButton';
+import { JoystickButton } from './components/UI/JoystickButton';
 import { HelpTooltip } from './components/UI/HelpTooltip';
 import { ToastContainer } from './components/UI/ToastContainer';
 import { DarkModeToggle } from './components/UI/DarkModeToggle';
@@ -11,6 +11,7 @@ import { LoginModal } from './components/Auth/LoginModal';
 import { UserProfile } from './components/Auth/UserProfile';
 import { CollaboratorsList } from './components/Sharing/CollaboratorsList';
 import { CanvasList } from './components/Canvas/CanvasList';
+import { ChatWindow } from './components/Chat/ChatWindow';
 import { useAuth } from './contexts/AuthContext';
 import { useAppStore, useStoreMode } from './contexts/StoreProvider';
 import { useSharedCanvasStore } from './store/sharedCanvasStore';
@@ -141,7 +142,8 @@ function App() {
           showCollaborators={showCollaborators}
           onToggleCollaborators={() => setShowCollaborators(!showCollaborators)}
         />
-        <FloatingButton />
+        <JoystickButton />
+        <ChatWindow />
         <HelpTooltip />
         <ToastContainer />
         

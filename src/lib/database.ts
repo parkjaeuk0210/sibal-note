@@ -3,10 +3,11 @@ import {
   onValue, 
   push,
   DataSnapshot,
-  serverTimestamp 
+  serverTimestamp,
+  set
 } from 'firebase/database';
 import { database } from './firebase';
-import { FirebaseNote, FirebaseImage, FirebaseFile } from '../types/firebase';
+import { FirebaseNote, FirebaseImage, FirebaseFile, FirebaseUserProfile } from '../types/firebase';
 import { realtimeBatchManager } from './realtimeBatchManager';
 import { storageManager } from './storageManager';
 
@@ -42,6 +43,37 @@ const getNotesPath = (userId: string) => `${getUserPath(userId)}/notes`;
 const getImagesPath = (userId: string) => `${getUserPath(userId)}/images`;
 const getFilesPath = (userId: string) => `${getUserPath(userId)}/files`;
 const getSettingsPath = (userId: string) => `${getUserPath(userId)}/settings`;
+const getProfilePath = (userId: string) => `${getUserPath(userId)}/profile`;
+
+// Notes operations
+export const subscribeToUserProfile = (
+  userId: string,
+  callback: (profile: FirebaseUserProfile | null) => void,
+  onError?: (error: Error) => void
+) => {
+  const profileRef = ref(database, getProfilePath(userId));
+  return onValue(
+    profileRef,
+    (snapshot: DataSnapshot) => {
+      const data = snapshot.val() as FirebaseUserProfile | null;
+      callback(data);
+    },
+    (error) => {
+      console.error('[Database] subscribeToUserProfile error:', error);
+      onError?.(error as unknown as Error);
+    }
+  );
+};
+
+export const saveUserProfile = async (userId: string, profile: FirebaseUserProfile) => {
+  const profileRef = ref(database, getProfilePath(userId));
+  const payload: FirebaseUserProfile = {
+    ...profile,
+    updatedAt: Date.now(),
+  };
+
+  await set(profileRef, payload);
+};
 
 // Notes operations
 export const saveNote = async (userId: string, note: Omit<FirebaseNote, 'id' | 'userId' | 'deviceId'>) => {

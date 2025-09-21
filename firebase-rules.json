@@ -9,21 +9,21 @@
     "shared_canvases": {
       "$canvasId": {
         ".read": "data.child('isPublic').val() === true || (auth != null && (data.child('owner').val() === auth.uid || data.child('participants').child(auth.uid).exists()))",
-        ".write": "data.child('isPublic').val() === true || (auth != null && (data.child('owner').val() === auth.uid || (data.child('participants').child(auth.uid).child('role').val() === 'editor')))",
+        ".write": "auth != null && ((!data.exists() && newData.child('owner').val() === auth.uid) || data.child('owner').val() === auth.uid || data.child('participants').child(auth.uid).child('role').val() === 'editor')",
         "participants": {
           "$participantId": {
             ".write": "auth != null && (root.child('shared_canvases').child($canvasId).child('owner').val() === auth.uid || $participantId === auth.uid)"
           }
         },
         "notes": {
-          ".validate": "newData.hasChildren() && newData.children().count() <= 100",
+          ".validate": "newData.hasChildren()",
           "$noteId": {
             ".write": "auth != null && (root.child('shared_canvases').child($canvasId).child('participants').child(auth.uid).child('role').val() === 'editor' || root.child('shared_canvases').child($canvasId).child('owner').val() === auth.uid)",
             ".validate": "newData.hasChildren(['content', 'x', 'y', 'width', 'height', 'color', 'createdAt', 'userId'])"
           }
         },
         "images": {
-          ".validate": "newData.hasChildren() && newData.children().count() <= 50",
+          ".validate": "newData.hasChildren()",
           "$imageId": {
             ".write": "auth != null && (root.child('shared_canvases').child($canvasId).child('participants').child(auth.uid).child('role').val() === 'editor' || root.child('shared_canvases').child($canvasId).child('owner').val() === auth.uid)"
           }
@@ -36,6 +36,15 @@
         "presence": {
           "$userId": {
             ".write": "$userId === auth.uid"
+          }
+        },
+        "chat": {
+          "messages": {
+            ".read": "auth != null && (root.child('shared_canvases').child($canvasId).child('owner').val() === auth.uid || root.child('shared_canvases').child($canvasId).child('participants').child(auth.uid).exists())",
+            "$messageId": {
+              ".write": "auth != null && root.child('shared_canvases').child($canvasId).child('participants').child(auth.uid).exists()",
+              ".validate": "newData.hasChildren(['userId','content','createdAt']) && newData.child('userId').val() === auth.uid && newData.child('content').isString()"
+            }
           }
         }
       }

@@ -15,11 +15,21 @@ let database: any = null;
 let storage: any = null;
 
 if (hasFirebaseConfig) {
+  const normalizedBucket = () => {
+    const bucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
+    if (!bucket) return undefined;
+    if (bucket.endsWith('.firebasestorage.app')) {
+      const projectId = bucket.replace('.firebasestorage.app', '');
+      return `${projectId}.appspot.com`;
+    }
+    return bucket;
+  };
+
   const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
     authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
     projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    storageBucket: normalizedBucket(),
     messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
     databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,

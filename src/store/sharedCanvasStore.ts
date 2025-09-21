@@ -26,6 +26,7 @@ import { Note, CanvasImage, CanvasFile, Viewport, NoteColor } from '../types';
 import { FirebaseNote, FirebaseImage, FirebaseFile } from '../types/firebase';
 import { SharedCanvas, CanvasParticipant, PresenceData, ParticipantRole } from '../types/sharing';
 import { auth } from '../lib/firebase';
+import { buildShareLink } from '../utils/url';
 
 export interface SharedCanvasStore {
   // Canvas info
@@ -272,7 +273,7 @@ export const useSharedCanvasStore = create<SharedCanvasStore>()(
         if (!isOwner) throw new Error('Only owner can generate share links');
 
         const token = await generateShareLink(canvasId, user.uid, role, expiresInHours);
-        return `${window.location.origin}/share/${token}`;
+        return buildShareLink(token);
       },
 
       removeParticipant: async (participantId: string) => {

@@ -5,6 +5,7 @@ import { firebaseMetrics } from '../utils/firebaseMetrics';
 class StorageManager {
   private readonly IMAGE_FOLDER = 'images';
   private readonly FILE_FOLDER = 'files';
+  private readonly PROFILE_FOLDER = 'profiles';
   
   /**
    * Convert base64 data URL to Blob
@@ -61,6 +62,61 @@ class StorageManager {
       return downloadUrl;
     } catch (error) {
       console.error('❌ Image upload failed:', error);
+      throw error;
+    }
+  }
+
+  async uploadProfileImage(userId: string, dataUrl: string): Promise<string> {
+    if (!storage) {
+      throw new Error('Firebase Storage is not initialized');
+    }
+
+    try {
+      const blob = this.dataURLtoBlob(dataUrl);
+      const extension = blob.type.split('/')[1] || 'png';
+      const path = `${this.PROFILE_FOLDER}/${userId}.${extension}`;
+      const profileRef = storageRef(storage, path);
+
+      console.log(`📤 Uploading profile image: ${path}`);
+      const snapshot = await uploadBytes(profileRef, blob, {
+        contentType: blob.type,
+        customMetadata: {
+          userId,
+          uploadedAt: new Date().toISOString(),
+        },
+      });
+
+      const downloadUrl = await getDownloadURL(snapshot.ref);
+      firebaseMetrics.incrementStorageUpload();
+      console.log(`✅ Profile image uploaded: ${downloadUrl}`);
+      return downloadUrl;
+    } catch (error) {
+      console.error('❌ Profile image upload failed:', error);
+      throw error;
+    }
+  }
+
+  async deleteProfileImage(userId: string): Promise<void> {
+    if (!storage) return;
+
+    try {
+      // Attempt deletion for common extensions
+      const extensions = ['png', 'jpg', 'jpeg', 'webp'];
+      await Promise.all(
+        extensions.map(async (ext) => {
+          try {
+            const path = `${this.PROFILE_FOLDER}/${userId}.${ext}`;
+            const refWithExt = storageRef(storage, path);
+            await deleteObject(refWithExt);
+          } catch (error: any) {
+            if (error.code !== 'storage/object-not-found') {
+              throw error;
+            }
+          }
+        })
+      );
+    } catch (error) {
+      console.error('❌ Profile image deletion failed:', error);
       throw error;
     }
   }

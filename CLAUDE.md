@@ -1,10 +1,10 @@
-# CLAUDE.md - InterectNote1 프로젝트 컨텍스트
+# CLAUDE.md - Sibal SNS 프로젝트 컨텍스트
 
 ## 📋 프로젝트 개요
-- **프로젝트명**: InterectNote1
-- **설명**: Apple Freeform 스타일의 무한 캔버스 메모 앱
-- **라이브 URL**: https://interectnote1-72u8uqrm2-feras-projects-59a977f0.vercel.app
-- **GitHub**: https://github.com/parkjaeuk0210/interectnote1
+- **프로젝트명**: Sibal SNS
+- **설명**: 무한 캔버스 기반 소셜 미디어 플랫폼
+- **기반**: InterectNote1에서 포크됨
+- **목표**: 크리에이터 중심의 소셜 캔버스 공유 플랫폼
 
 ## 🛠 기술 스택
 - React 19 + TypeScript 5

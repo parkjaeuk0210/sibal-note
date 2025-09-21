@@ -143,7 +143,7 @@ function App() {
           onToggleCollaborators={() => setShowCollaborators(!showCollaborators)}
         />
         <JoystickButton />
-        <ChatWindow />
+        {isSharedMode && <ChatWindow />}
         <HelpTooltip />
         <ToastContainer />
         

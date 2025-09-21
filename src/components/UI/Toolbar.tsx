@@ -286,7 +286,7 @@ export const Toolbar = ({ isSharedMode, showCollaborators, onToggleCollaborators
 
         {notes.length > 0 && (
           <>
-            <div className="w-6 h-px bg-gray-300" />
+            <div className="w-px h-6 bg-gray-300" />
             
             <button
               onClick={() => {

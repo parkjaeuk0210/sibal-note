@@ -3,10 +3,19 @@ import { getAuth, GoogleAuthProvider, signInAnonymously } from 'firebase/auth';
 import { getDatabase } from 'firebase/database';
 import { getStorage } from 'firebase/storage';
 
+// Normalize environment variables to avoid stray whitespace/newlines from deployment dashboards
+const sanitizeEnv = (value?: string) => value?.toString().trim() || undefined;
+
+const apiKey = sanitizeEnv(import.meta.env.VITE_FIREBASE_API_KEY);
+const authDomain = sanitizeEnv(import.meta.env.VITE_FIREBASE_AUTH_DOMAIN);
+const projectId = sanitizeEnv(import.meta.env.VITE_FIREBASE_PROJECT_ID);
+const storageBucketEnv = sanitizeEnv(import.meta.env.VITE_FIREBASE_STORAGE_BUCKET);
+const messagingSenderId = sanitizeEnv(import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID);
+const appId = sanitizeEnv(import.meta.env.VITE_FIREBASE_APP_ID);
+const databaseURL = sanitizeEnv(import.meta.env.VITE_FIREBASE_DATABASE_URL);
+
 // Check if Firebase config is available
-const hasFirebaseConfig = import.meta.env.VITE_FIREBASE_API_KEY && 
-                         import.meta.env.VITE_FIREBASE_AUTH_DOMAIN && 
-                         import.meta.env.VITE_FIREBASE_PROJECT_ID;
+const hasFirebaseConfig = apiKey && authDomain && projectId;
 
 let app: any = null;
 let auth: any = null;
@@ -16,7 +25,7 @@ let storage: any = null;
 
 if (hasFirebaseConfig) {
   const normalizedBucket = () => {
-    const bucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
+    const bucket = storageBucketEnv;
     if (!bucket) return undefined;
     if (bucket.endsWith('.firebasestorage.app')) {
       const projectId = bucket.replace('.firebasestorage.app', '');
@@ -26,13 +35,13 @@ if (hasFirebaseConfig) {
   };
 
   const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    apiKey,
+    authDomain,
+    projectId,
     storageBucket: normalizedBucket(),
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,
-    databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+    messagingSenderId,
+    appId,
+    databaseURL,
   };
 
   // Initialize Firebase
